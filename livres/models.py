@@ -46,6 +46,7 @@ class Transfert(models.Model):
     ok_possesseur_date = models.DateField(null=True, blank=True)
     # date ou le receveur confirme qu'il a bien recu le livre
     ok_demandeur_date = models.DateField(null=True, blank=True)
+    demandeur_cancel_date = models.DateField(null=True, blank=True)
 
     class TransfertStatus(models.TextChoices):
         INITIALISE = 'INIT', _('INITIALISER')

@@ -11,44 +11,58 @@
 
 {% block content %}
     <h3>
-    {% if action ==  'listReceptionLivreAConfirmer'%}
-    R&eacuteceptions de livre &agrave; confirmer:
-    {% elif  action ==  'listTransfertMesLivres'%}
-    Demandes de transfert de mes livres
-    {% endif %}
-</h3>
 
-{% if transferts_list %}
-    <table>
-        <tr>
-            <th scope="col">Transfert ID (tmp)</th>
-            <th scope="col">Titre</th>
-            <th scope="col">Status</th>
-            <th scope="col">Ville</th>
-            <th scope="col">Date de creation</th>
-            <th scope="col">Actions</th>
-        </tr>
-        {% for transfert in transferts_list %}
+        {% if  action ==  'listTransfertMesLivres' %}
+            Demandes de transfert de mes livres
+        {% elif action ==  'listReceptionLivreAConfirmer' %}
+            R&eacuteceptions de livre &agrave; confirmer:
+        {% elif action == 'listMesDemandesTransfert' %}
+            Mes Demandes de transfert de livre
+        {% endif %}
+    </h3>
+
+    {% if transferts_list %}
+        <table>
             <tr>
-            <td>{{ transfert.id }}</td>
-            <td>{{ transfert.livre.titre_text }}</td>
-            <td>{{ transfert.transfert_status }}</td>
-            <td>{{ transfert.livre.possesseur.ville }} </td>
-            <td>{{ transfert.creation_date }} </td>
-            <td>
-            {% if action ==  'listTransfertMesLivres' and transfert.transfert_status == 'INIT' and user == transfert.livre.possesseur %}
-                <form action="/livres/index/{{ transfert.id }}/" method="get">{% csrf_token %}<button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button><br></form>
-                <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}<button type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button><br></form>
-            {% elif  action ==  'listReceptionLivreAConfirmer'%}
-                 <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}<button type="submit">confirmer r&eacuteception du livre.</button><br></form>
-            {% endif %}
-            </td>
-        {% endfor %}
-        </tr>
-    </table>
-{% else %}
-    <p>Pas de transfert disponible.</p>
-{% endif %}
+                <th scope="col">Transfert ID (tmp)</th>
+                <th scope="col">Titre</th>
+                <th scope="col">Status</th>
+                <th scope="col">Ville</th>
+                <th scope="col">Date de creation</th>
+                <th scope="col">Actions</th>
+            </tr>
+            {% for transfert in transferts_list %}
+                <tr>
+                <td>{{ transfert.id }}</td>
+                <td>{{ transfert.livre.titre_text }}</td>
+                <td>{{ transfert.transfert_status }}</td>
+                <td>{{ transfert.livre.possesseur.ville }} </td>
+                <td>{{ transfert.creation_date }} </td>
+                <td>
+                    {% if action ==  'listTransfertMesLivres' and transfert.transfert_status == 'INIT' and user == transfert.livre.possesseur %}
+                        <form action="/livres/index/{{ transfert.id }}/" method="get">{% csrf_token %}
+                            <button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
+                            <br></form>
+                        <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}
+                            <button type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button>
+                            <br></form>
+                    {% elif  action ==  'listReceptionLivreAConfirmer' %}
+                        <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
+                            <button type="submit">confirmer r&eacuteception du livre.</button>
+                            <br></form>
+
+                    {% elif  action == 'listMesDemandesTransfert' %}
+                        <form action="/livres/annultransfert/{{ transfert.id }}/" method="post">{% csrf_token %}
+                            <button type="submit">Annuler.</button>
+                            <br></form>
+                    {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+        </table>
+    {% else %}
+        <p>Pas de transfert disponible.</p>
+    {% endif %}
 {% endblock content %}
 
 

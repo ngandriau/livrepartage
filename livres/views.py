@@ -12,9 +12,16 @@ from .models import Livre, Transfert
 def index_view(request):
     context = {
         'latest_created_livre_list': Livre.objects.order_by('-creation_date')[:25],
-        'demandes_transfert_mes_livres_list': Transfert.objects.filter(livre__possesseur=request.user,transfert_status='INIT')
+        'demandes_transfert_mes_livres_list': Transfert.objects.filter(livre__possesseur=request.user,
+                                                                       transfert_status='INIT')
             .order_by('-creation_date'),
-        'receptions_live_a_confirmer_list': Transfert.objects.filter(demandeur=request.user, transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR)
+        'receptions_live_a_confirmer_list': Transfert.objects.filter(demandeur=request.user,
+                                                                     transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR)
+            .order_by('-ok_demandeur_date'),
+        'mes_demandes_transfert_list': Transfert.objects.filter(demandeur=request.user,
+                                                                transfert_status__in=[
+                                                                    Transfert.TransfertStatus.INITIALISE,
+                                                                    Transfert.TransfertStatus.OKPOSSESSEUR])
             .order_by('-ok_demandeur_date')
     }
     return render(request, 'livres/index.html', context)
@@ -92,10 +99,25 @@ def list_demandes_transfert_mes_livres(request):
 
 @login_required()
 def list_reception_livre_a_confirmer(request):
-    transferts_list = Transfert.objects.filter(demandeur=request.user, transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR).order_by(
+    transferts_list = Transfert.objects.filter(demandeur=request.user,
+                                               transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR).order_by(
         '-ok_demandeur_date')
     context = {
         'action': 'listReceptionLivreAConfirmer',
+        'transferts_list': transferts_list
+    }
+    return render(request, 'livres/transferts_list.html', context)
+
+
+@login_required()
+def list_mes_demandes_transfert_de_livres(request):
+    transferts_list = Transfert.objects.filter(demandeur=request.user,
+                             transfert_status__in=[
+                                 Transfert.TransfertStatus.INITIALISE,
+                                 Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
+        '-ok_demandeur_date')
+    context = {
+        'action': 'listMesDemandesTransfert',
         'transferts_list': transferts_list
     }
     return render(request, 'livres/transferts_list.html', context)
@@ -122,3 +144,17 @@ def livre_a_ete_recu(request, pk):
     transfert.save()
     transfert.livre.save()
     return HttpResponseRedirect(reverse('livres:index'))
+
+@login_required()
+def annul_demande_transfert(request, pk):
+    print(f"annul_demande_transfert {pk}")
+    transfert = get_object_or_404(Transfert, pk=pk)
+    if(transfert.demandeur != request.user):
+        print(f"!!!WARNING annulation transfert demande par user[{request.user}] qui n'est pas le demandeur[{transfert.demandeur}]")
+        return HttpResponseRedirect(reverse('livres:index'))
+
+    transfert.transfert_status = Transfert.TransfertStatus.CANCEL
+    transfert.demandeur_cancel_date = timezone.now()
+    transfert.save()
+    return HttpResponseRedirect(reverse('livres:index'))
+

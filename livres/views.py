@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
+from django.utils import dateparse
 
 from .models import Livre, Transfert
 
@@ -55,12 +56,19 @@ def requete_edit_livre(request, pk):
 @login_required()
 def submit_nouveau_livre(request):
     print("submit new livre")
+    print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
+    print(request.POST['dateedition'])
+    print(dateparse.parse_date(request.POST['dateedition']))
+
+    # livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
+
     livre = Livre(livre_code="TODOFIX",
                   titre_text=request.POST['titre'],
                   auteur_text=request.POST['auteur'],
                   creation_date=timezone.now(),
                   createur=request.user,
-                  possesseur=request.user)
+                  possesseur=request.user,
+                  transferable_status=request.POST['transferable_status'] )
     livre.save()
     print(livre)
     return HttpResponseRedirect(reverse('livres:index'))
@@ -68,11 +76,14 @@ def submit_nouveau_livre(request):
 
 @login_required()
 def submit_edit_livre(request):
-    print(f"submit_edit_livre({request.POST['livre_id']})")
-
+    print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
+    print(request.POST['dateedition'])
+    print(dateparse.parse_date(request.POST['dateedition']))
     livre = get_object_or_404(Livre, pk=request.POST['livre_id'])
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
+    livre.transferable_status = request.POST['transferable_status']
+    livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
     livre.save()
     return HttpResponseRedirect(reverse('livres:index'))
 

@@ -16,6 +16,7 @@ class Livre(models.Model):
     titre_text = models.CharField(max_length=200)
     auteur_text = models.CharField(max_length=200, blank=True, default='')
     publication_date = models.DateField('date publication', null=True, blank=True)
+    url_externe_livre_text=models.CharField(max_length=200, blank=True, default='')
     # date d'insertion dans le systeme
     creation_date = models.DateField('date creation')
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
@@ -38,8 +39,12 @@ class Livre(models.Model):
 
 class Transfert(models.Model):
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE)
-    creation_date= models.DateField(auto_now=True, null=False)
+    creation_date = models.DateField(auto_now=True, null=False)
     demandeur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandeurtsf')
+
+    # Date à laquelle le possesseur du livre envois un message au demandeur pour planifier échange du livre
+    possesseur_envois_message_date = models.DateField(auto_now=True, null=False)
+
     # possesseur when the transfert is actually done, not when requested, as the possesseur can change
     possesseur_final = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseurfinaltsf', null=True, blank=True)
     # date ou le possesseur indique qu'il a transféré(physiquement) le livre au demandeur

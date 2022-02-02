@@ -1,0 +1,27 @@
+{% extends "livres/base.html" %}
+{% load static %}
+
+{% block title %}{% if action == 'creation' %}Creation{% else %}Modifier {% endif %} livre {% endblock title %}
+
+{% block header %}
+    {% include 'livres/common_header.html' %}
+{% endblock header %}
+
+{% block content %}
+    {% if action == 'creation' %}
+        <form action="{% url 'livres:subnouvlivre' %}" method="post">
+    {% else %}
+        <form action="{% url 'livres:subeditlivre' %}" method="post">
+    {% endif %}
+{% csrf_token %}
+<fieldset>
+    <legend><h1>{% if action == 'creation' %}Creation{% else %}Modifier {% endif %} livre</h1></legend>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <input type="hidden" name="livre_id" value="{{ livre.id }}">
+    <p/>Titre: <input type="text" name="titre" id="titre" value="{{ livre.titre_text }}">
+    <p/>Auteur(s): <input type="text" name="auteur" id="auteur" value="{{ livre.auteur_text }}">
+</fieldset>
+<input type="submit">
+</form>
+
+{% endblock content %}

@@ -1,0 +1,52 @@
+{% extends "livres/base.html" %}
+{% load static %}
+
+{% block title %}Bienvenu aux livres{% endblock title %}
+
+
+
+{% block header %}
+{% include 'livres/common_header.html' %}
+{% endblock header %}
+
+{% block content %}
+    <form action="{% url 'livres:reqnouvlivre' %}" method="get"> <button type="submit" >Ajout Livre</button></form>
+
+{% if latest_created_livre_list %}
+    Les livres les plus r&eacute;cents dans le syst&egrave;me. Bient&ocirc;t la recherche sera disponible :-)
+    <table>
+        <tr>
+            <th scope="col">Titre</th>
+            <th scope="col">Auteur(s)</th>
+            <th scope="col">Status</th>
+            <th scope="col">Ville</th>
+            <th scope="col">Je poss&egrave;de</th>
+            <th scope="col">J'ai cr&eacute;&eacute;</th>
+            <th scope="col">Date ajout</th>
+            <th scope="col">Date Edition</th>
+            <th scope="col">Actions</th>
+        </tr>
+        {% for livre in latest_created_livre_list %}
+            <tr>
+            <td><a href="{% url 'livres:reqeditlivre' livre.id %}">{{ livre.titre_text }}</a></td>
+            <td>{{ livre.auteur_text }}</td>
+            <td>{{ livre.transferable_status }} </td>
+            <td>{{ livre.possesseur.userprofile.ville }} </td>
+            <td>{% if livre.possesseur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %} </td>
+            <td>{% if livre.createur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %} </td>
+            <td>{{livre.creation_date |date:"d M Y"}}</td>
+            <td>{{livre.publication_date|date:"d M Y"}}</td>
+            <td>
+            {% if livre.possesseur != user %}
+                <form action="/livres/demandetransfert/{{ livre.id }}/" method="get"><button type="submit">Je suis int&eacute;ress&eacute;</button><br></form>
+            {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+    </table>
+{% else %}
+    <p>Pas de livre disponible.</p>
+{% endif %}
+{% endblock content %}
+
+

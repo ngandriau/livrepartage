@@ -1,0 +1,9 @@
+<a href="{% url 'livres:index' %}"  >Partageons nos livres :-)</a> -
+<a href="{% url 'livres:listtransfertmeslivre' %}">demandes pour mes livres ({{ demandes_transfert_mes_livres_list|length }})</a> -
+<a href="{% url 'livres:listreceptionaconfirmer' %}">réceptions de livre &agrave; confirmer ({{receptions_live_a_confirmer_list|length }}) </a> -
+<a href="{% url 'livres:listmesdemandestransfert' %}">mes demandes de transfert (0) </a> -
+{% if user.is_authenticated %}
+  Hi {{ user.username }}! - <a href="{% url 'logout' %}">Log Out</a>
+{% else %}
+  !!!You are not logged in - <a href="{% url 'login' %}">Log In</a>
+{% endif %}

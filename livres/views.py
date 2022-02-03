@@ -11,8 +11,18 @@ from .models import Livre, Transfert
 
 @login_required()
 def index_view(request):
+    latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
+    # clef = livre, value= transfert
+    livres_avec_transfert_actif_pour_user = {}
+    for l in latest_created_livre_list:
+        transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status='INIT')
+        if(transfert):
+            livres_avec_transfert_actif_pour_user[l] = transfert
+
+
     context = {
-        'latest_created_livre_list': Livre.objects.order_by('-creation_date')[:25],
+        'latest_created_livre_list': latest_created_livre_list,
+        'livres_avec_transfert_actif_pour_user': livres_avec_transfert_actif_pour_user,
         'demandes_transfert_mes_livres_list': Transfert.objects.filter(livre__possesseur=request.user,
                                                                        transfert_status='INIT')
             .order_by('-creation_date'),
@@ -68,7 +78,8 @@ def submit_nouveau_livre(request):
                   creation_date=timezone.now(),
                   createur=request.user,
                   possesseur=request.user,
-                  transferable_status=request.POST['transferable_status'] )
+                  transferable_status=request.POST['transferable_status'],
+                  url_externe_livre_text=request.POST['pageweb'])
     livre.save()
     print(livre)
     return HttpResponseRedirect(reverse('livres:index'))
@@ -84,6 +95,7 @@ def submit_edit_livre(request):
     livre.auteur_text = request.POST['auteur']
     livre.transferable_status = request.POST['transferable_status']
     livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
+    livre.url_externe_livre_text = request.POST['pageweb']
     livre.save()
     return HttpResponseRedirect(reverse('livres:index'))
 
@@ -169,3 +181,15 @@ def annul_demande_transfert(request, pk):
     transfert.save()
     return HttpResponseRedirect(reverse('livres:index'))
 
+
+@login_required()
+def send_message_demandeur_to_prep_transfert(request, pk):
+    print(f"send_message_demandeur_to_prep_transfert {pk}")
+    transfert = get_object_or_404(Transfert, pk=pk)
+    if(transfert.livre.possesseur != request.user):
+        print(f"!!!WARNING send_message_demandeur_to_prep_transfert demande par user[{request.user}] qui n'est pas le possesseur du livre[{transfert.livre}]")
+        return HttpResponseRedirect(reverse('livres:index'))
+
+    transfert.possesseur_envois_message_date = timezone.now()
+    transfert.save()
+    return HttpResponseRedirect(reverse('livres:index'))

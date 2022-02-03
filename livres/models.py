@@ -43,7 +43,7 @@ class Transfert(models.Model):
     demandeur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandeurtsf')
 
     # Date à laquelle le possesseur du livre envois un message au demandeur pour planifier échange du livre
-    possesseur_envois_message_date = models.DateField(auto_now=True, null=False)
+    possesseur_envois_message_date = models.DateField(null=True, blank=True)
 
     # possesseur when the transfert is actually done, not when requested, as the possesseur can change
     possesseur_final = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseurfinaltsf', null=True, blank=True)

@@ -38,7 +38,13 @@
             <td>{{livre.publication_date|date:"d M Y"}}</td>
             <td>
             {% if livre.possesseur != user %}
-                <form action="/livres/demandetransfert/{{ livre.id }}/" method="get"><button type="submit">Je suis int&eacute;ress&eacute;</button><br></form>
+                {% if  livre not in livres_avec_transfert_actif_pour_user%}
+                    <form action="/livres/demandetransfert/{{ livre.id }}/" method="get"><button type="submit">Je suis int&eacute;ress&eacute;</button><br></form>
+                {% else %}
+                    Transfert d&eacute;j&agrave; demand&eacute;
+{# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}
+{#                    le {{ livres_avec_transfert_actif_pour_user|get_key:livre }}#}
+                {% endif %}
             {% endif %}
             </td>
         {% endfor %}

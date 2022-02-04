@@ -20,15 +20,18 @@
     <input type="hidden" name="livre_id" value="{{ livre.id }}">
     <p/>Titre: <input type="text" name="titre" id="titre" value="{{ livre.titre_text }}">
     <p/>Auteur(s): <input type="text" name="auteur" id="auteur" value="{{ livre.auteur_text }}">
-    <p/>Date d'&eacutedition: <input type="text" name="dateedition" id="dateedition" value="{{ livre.publication_date }}">
+    <p/>Code de couverture: {{ livre.livre_code }}
+    <p/>Date d'&eacutedition: <input type="text" name="dateedition" id="dateedition"
+                                     value="{{ livre.publication_date }}">
     <p/>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
     <p/>Status du livre
-<select name="transferable_status">
-    <option value="DISP" selected>Disponible</option>
-    <option value="LECT" >En lecture</option>
-</select>
+    <select name="transferable_status">
+        <option value="DISP" selected>Disponible</option>
+        <option value="LECT">En lecture</option>
+    </select>
 </fieldset>
-<button type="submit">Enregistrer</button> - <button type="submit">Enregistrer et cr&eacute&eacute un autre livre</button>
+<button type="submit">Enregistrer</button> -
+<button type="submit">Enregistrer et cr&eacute&eacute un autre livre</button>
 </form>
 
 {% endblock content %}

@@ -1,24 +1,25 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from django.utils import dateparse
 from django.utils import timezone
 from django.views import generic
-from django.utils import dateparse
+from decouple import config
 
 from .models import Livre, Transfert
 
 
 @login_required()
 def index_view(request):
+
     latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
     for l in latest_created_livre_list:
         transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status='INIT')
-        if(transfert):
+        if (transfert):
             livres_avec_transfert_actif_pour_user[l] = transfert
-
 
     context = {
         'latest_created_livre_list': latest_created_livre_list,
@@ -35,6 +36,16 @@ def index_view(request):
                                                                     Transfert.TransfertStatus.OKPOSSESSEUR])
             .order_by('-ok_demandeur_date')
     }
+    # request.session['prevaction'] = 'newlivre'
+    # request.session['livre_id'] = 'livre.id'
+    if (request.session.__contains__('prevaction')):
+        if (request.session['prevaction'] == 'newlivre'):
+            context['showNewLivreCode'] = True
+            context['newLivre'] = get_object_or_404(Livre, pk=request.session['livre_id'])
+            request.session.__delitem__('prevaction')
+            request.session.__delitem__('livre_id')
+    else:
+        print("No entry 'prevaction' in session")
     return render(request, 'livres/index.html', context)
 
 
@@ -65,24 +76,25 @@ def requete_edit_livre(request, pk):
 
 @login_required()
 def submit_nouveau_livre(request):
-    print("submit new livre")
-    print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
-    print(request.POST['dateedition'])
-    print(dateparse.parse_date(request.POST['dateedition']))
-
+    print(f"submit_nouveau_livre({request.POST['titre']}) - status: {request.POST['transferable_status']}")
     # livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
 
-    livre = Livre(livre_code="TODOFIX",
-                  titre_text=request.POST['titre'],
-                  auteur_text=request.POST['auteur'],
-                  creation_date=timezone.now(),
-                  createur=request.user,
-                  possesseur=request.user,
-                  transferable_status=request.POST['transferable_status'],
-                  url_externe_livre_text=request.POST['pageweb'])
+    livre = Livre(
+        titre_text=request.POST['titre'],
+        auteur_text=request.POST['auteur'],
+        creation_date=timezone.now(),
+        createur=request.user,
+        possesseur=request.user,
+        transferable_status=request.POST['transferable_status'],
+        url_externe_livre_text=request.POST['pageweb'])
     livre.save()
-    print(livre)
-    return HttpResponseRedirect(reverse('livres:index'))
+    livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
+    livre.save()
+    print(livre.livre_code)
+    # return redirect(reverse('livres:index'))
+    request.session['prevaction'] = 'newlivre'
+    request.session['livre_id'] = livre.id
+    return redirect(reverse('livres:index'))
 
 
 @login_required()
@@ -135,15 +147,16 @@ def list_reception_livre_a_confirmer(request):
 @login_required()
 def list_mes_demandes_transfert_de_livres(request):
     transferts_list = Transfert.objects.filter(demandeur=request.user,
-                             transfert_status__in=[
-                                 Transfert.TransfertStatus.INITIALISE,
-                                 Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
+                                               transfert_status__in=[
+                                                   Transfert.TransfertStatus.INITIALISE,
+                                                   Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
         '-ok_demandeur_date')
     context = {
         'action': 'listMesDemandesTransfert',
         'transferts_list': transferts_list
     }
     return render(request, 'livres/transferts_list.html', context)
+
 
 @login_required()
 def livre_a_ete_transfere(request, pk):
@@ -168,12 +181,14 @@ def livre_a_ete_recu(request, pk):
     transfert.livre.save()
     return HttpResponseRedirect(reverse('livres:index'))
 
+
 @login_required()
 def annul_demande_transfert(request, pk):
     print(f"annul_demande_transfert {pk}")
     transfert = get_object_or_404(Transfert, pk=pk)
-    if(transfert.demandeur != request.user):
-        print(f"!!!WARNING annulation transfert demande par user[{request.user}] qui n'est pas le demandeur[{transfert.demandeur}]")
+    if (transfert.demandeur != request.user):
+        print(
+            f"!!!WARNING annulation transfert demande par user[{request.user}] qui n'est pas le demandeur[{transfert.demandeur}]")
         return HttpResponseRedirect(reverse('livres:index'))
 
     transfert.transfert_status = Transfert.TransfertStatus.CANCEL
@@ -186,8 +201,9 @@ def annul_demande_transfert(request, pk):
 def send_message_demandeur_to_prep_transfert(request, pk):
     print(f"send_message_demandeur_to_prep_transfert {pk}")
     transfert = get_object_or_404(Transfert, pk=pk)
-    if(transfert.livre.possesseur != request.user):
-        print(f"!!!WARNING send_message_demandeur_to_prep_transfert demande par user[{request.user}] qui n'est pas le possesseur du livre[{transfert.livre}]")
+    if (transfert.livre.possesseur != request.user):
+        print(
+            f"!!!WARNING send_message_demandeur_to_prep_transfert demande par user[{request.user}] qui n'est pas le possesseur du livre[{transfert.livre}]")
         return HttpResponseRedirect(reverse('livres:index'))
 
     transfert.possesseur_envois_message_date = timezone.now()

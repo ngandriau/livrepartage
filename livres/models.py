@@ -23,7 +23,7 @@ class Livre(models.Model):
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
 
     def __str__(self):
-        return self.titre_text
+        return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}] - creation:[{self.creation_date}] "
 
     class TransferableStatus(models.TextChoices):
         DISPONIBLE = 'DISP', _('Disponible')

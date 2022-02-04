@@ -1,0 +1,4 @@
+Django==4.0.2
+python-decouple==3.5
+requests==2.27.1
+sqlalchemy==1.4.31

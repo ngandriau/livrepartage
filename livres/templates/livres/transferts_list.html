@@ -6,7 +6,7 @@
 
 
 {% block header %}
-{% include 'livres/common_header.html' %}
+    {% include 'livres/common_header.html' %}
 {% endblock header %}
 
 {% block content %}
@@ -22,7 +22,7 @@
     </h3>
 
     {% if transferts_list %}
-        <table class="table">
+        <table class="table table-striped table-hover">
             <tr>
                 <th scope="col">Transfert ID (tmp)</th>
                 <th scope="col">Titre</th>
@@ -42,10 +42,11 @@
                     {% if action ==  'listTransfertMesLivres' and transfert.transfert_status == 'INIT' and user == transfert.livre.possesseur %}
                         {% if transfert.possesseur_envois_message_date %}
                             Message envoy&eacute le: {{ transfert.possesseur_envois_message_date }}
-                        {%  else %}
-                        <form action="/livres/sendmessagetoinittransfert/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
-                            <br></form>
+                        {% else %}
+                            <form action="/livres/sendmessagetoinittransfert/{{ transfert.id }}/"
+                                  method="post">{% csrf_token %}
+                                <button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
+                                <br></form>
                         {% endif %}
                         <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}
                             <button type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button>

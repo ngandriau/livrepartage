@@ -24,16 +24,19 @@
     {% if transferts_list %}
         <table class="table table-striped table-hover">
             <tr>
-                <th scope="col">Transfert ID (tmp)</th>
+{#                <th scope="col">Transfert ID (tmp)</th>#}
                 <th scope="col">Titre</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ville</th>
                 <th scope="col">Date de creation</th>
+                {% if  action == 'listMesDemandesTransfert' %}
+                    <th scope="col">Date message possesseur</th>
+                {% endif %}
                 <th scope="col">Actions</th>
             </tr>
             {% for transfert in transferts_list %}
                 <tr>
-                <td>{{ transfert.id }}</td>
+{#                <td>{{ transfert.id }}</td>#}
                 <td>{{ transfert.livre.titre_text }}</td>
                 <td>{{ transfert.transfert_status }}</td>
                 <td>{{ transfert.livre.possesseur.ville }} </td>
@@ -45,26 +48,36 @@
                         {% else %}
                             <form action="/livres/sendmessagetoinittransfert/{{ transfert.id }}/"
                                   method="post">{% csrf_token %}
-                                <button class="btn btn-primary btn-default" type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
+                                <button class="btn btn-primary btn-default" type="submit">Envoyer message pour pr&eacute;parer
+                                    &eacutechange
+                                </button>
                                 <br></form>
                         {% endif %}
-{#                        <button type="button" class="btn btn-primary btn-default" data-toggle="modal" data-target="#livreTransfertConfirmation">#}
-{#                            Le livre a &eacutet&eacute transf&eacuter&eacute#}
-{#                        </button>#}
+                        {#                        <button type="button" class="btn btn-primary btn-default" data-toggle="modal" data-target="#livreTransfertConfirmation">#}
+                        {#                            Le livre a &eacutet&eacute transf&eacuter&eacute#}
+                        {#                        </button>#}
                         <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button class="btn btn-primary btn-default" type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button>
+                            <button class="btn btn-primary btn-default" type="submit">Le livre a &eacutet&eacute
+                                transf&eacuter&eacute
+                            </button>
                             <br></form>
                     {% elif  action ==  'listReceptionLivreAConfirmer' %}
                         <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button class="btn btn-primary btn-default" type="submit">confirmer r&eacuteception du livre.</button>
+                            <button class="btn btn-primary btn-default" type="submit">confirmer r&eacuteception du
+                                livre.
+                            </button>
                             <br></form>
 
                     {% elif  action == 'listMesDemandesTransfert' %}
+                        {% if  transfert.possesseur_envois_message_date %}
+                            {{ transfert.possesseur_envois_message_date }}</td>
+                        {% endif %}
+                        <td>
                         <form action="/livres/annultransfert/{{ transfert.id }}/" method="post">{% csrf_token %}
                             <button class="btn btn-primary btn-default" type="submit">Annuler</button>
                             <br></form>
                     {% endif %}
-                </td>
+                    </td>
             {% endfor %}
             </tr>
         </table>
@@ -73,8 +86,8 @@
     {% endif %}
 
 
-{#    <div class="modal fade" id="confirmationTransfertLivre" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">#}
-    <div class="modal fade" tabindex="-1" role="dialog" id="livreTransfertConfirmation" >
+    {#    <div class="modal fade" id="confirmationTransfertLivre" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">#}
+    <div class="modal fade" tabindex="-1" role="dialog" id="livreTransfertConfirmation">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">

@@ -16,7 +16,9 @@ def index_view(request):
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
     for l in latest_created_livre_list:
-        transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status='INIT')
+        transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status__in=[
+                                                                    Transfert.TransfertStatus.INITIALISE,
+                                                                    Transfert.TransfertStatus.OKPOSSESSEUR])
         if (transfert):
             livres_avec_transfert_actif_pour_user[l] = transfert
 

@@ -45,7 +45,7 @@
                         {% else %}
                             <form action="/livres/sendmessagetoinittransfert/{{ transfert.id }}/"
                                   method="post">{% csrf_token %}
-                                <button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
+                                <button class="btn btn-primary btn-default" type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
                                 <br></form>
                         {% endif %}
 {#                        <button type="button" class="btn btn-primary btn-default" data-toggle="modal" data-target="#livreTransfertConfirmation">#}
@@ -56,12 +56,12 @@
                             <br></form>
                     {% elif  action ==  'listReceptionLivreAConfirmer' %}
                         <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button type="submit">confirmer r&eacuteception du livre.</button>
+                            <button class="btn btn-primary btn-default" type="submit">confirmer r&eacuteception du livre.</button>
                             <br></form>
 
                     {% elif  action == 'listMesDemandesTransfert' %}
                         <form action="/livres/annultransfert/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button type="submit">Annuler.</button>
+                            <button class="btn btn-primary btn-default" type="submit">Annuler</button>
                             <br></form>
                     {% endif %}
                 </td>
@@ -84,8 +84,8 @@
                     <p>Modal body text goes here.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary">Confirmer Transfert</button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-default btn-primary">Confirmer Transfert</button>
                 </div>
             </div>
         </div>

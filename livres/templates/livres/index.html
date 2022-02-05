@@ -11,7 +11,7 @@
 
 {% block content %}
     <form action="{% url 'livres:reqnouvlivre' %}" method="get">
-        <button type="submit">Ajout Livre</button>
+        <button class="btn btn-primary btn-default" type="submit">Ajout Livre</button>
     </form>
     {% if latest_created_livre_list %}
         Les livres les plus r&eacute;cents dans le syst&egrave;me. Bient&ocirc;t la recherche sera disponible :-)
@@ -47,7 +47,7 @@
                     {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
                         {% if  livre not in livres_avec_transfert_actif_pour_user %}
                             <form action="/livres/demandetransfert/{{ livre.id }}/" method="get">
-                                <button type="submit">Je suis int&eacute;ress&eacute;</button>
+                                <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
                                 <br></form>
                         {% else %}
                             Transfert d&eacute;j&agrave; demand&eacute;

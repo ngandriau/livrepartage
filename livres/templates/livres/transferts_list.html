@@ -48,8 +48,11 @@
                                 <button type="submit">Envoyer message pour pr&eacute;parer &eacutechange</button>
                                 <br></form>
                         {% endif %}
+{#                        <button type="button" class="btn btn-primary btn-default" data-toggle="modal" data-target="#livreTransfertConfirmation">#}
+{#                            Le livre a &eacutet&eacute transf&eacuter&eacute#}
+{#                        </button>#}
                         <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}
-                            <button type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button>
+                            <button class="btn btn-primary btn-default" type="submit">Le livre a &eacutet&eacute transf&eacuter&eacute</button>
                             <br></form>
                     {% elif  action ==  'listReceptionLivreAConfirmer' %}
                         <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
@@ -68,6 +71,26 @@
     {% else %}
         <p>Pas de transfert disponible.</p>
     {% endif %}
+
+
+{#    <div class="modal fade" id="confirmationTransfertLivre" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">#}
+    <div class="modal fade" tabindex="-1" role="dialog" id="livreTransfertConfirmation" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Veuillez confirmer svp</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary">Confirmer Transfert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock content %}
 
 

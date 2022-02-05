@@ -1,3 +1,4 @@
+from decouple import config
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
@@ -5,14 +6,12 @@ from django.urls import reverse
 from django.utils import dateparse
 from django.utils import timezone
 from django.views import generic
-from decouple import config
 
 from .models import Livre, Transfert
 
 
 @login_required()
 def index_view(request):
-
     latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
@@ -102,7 +101,14 @@ def submit_edit_livre(request):
     print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
     print(request.POST['dateedition'])
     print(dateparse.parse_date(request.POST['dateedition']))
+
     livre = get_object_or_404(Livre, pk=request.POST['livre_id'])
+
+    if (livre.possesseur != request.user):
+        print(
+            f"submit_edit_livre({livre.titre_text} - {livre.livre_code}) - tentative de mise a jour par {request.user} qui n'est pas le possesseur du livre!!! - ignore changement.")
+        return HttpResponseRedirect(reverse('livres:index'))
+
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
     livre.transferable_status = request.POST['transferable_status']

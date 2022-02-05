@@ -30,7 +30,10 @@
             </tr>
             {% for livre in latest_created_livre_list %}
                 <tr>
-                <td><a href="{% url 'livres:reqeditlivre' livre.id %}">{{ livre.titre_text }}</a></td>
+                <td> {% if livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.id %}">{% endif %}
+                    {{ livre.titre_text }}
+                    {% if livre.possesseur == user %}</a>{% endif %}
+                </td>
                 <td>{{ livre.auteur_text }}</td>
                 <td>{{ livre.transferable_status }} </td>
                 <td>{{ livre.livre_code }} </td>
@@ -41,7 +44,7 @@
                 <td>{{ livre.creation_date |date:"d M Y" }}</td>
                 <td>{{ livre.publication_date|date:"d M Y" }}</td>
                 <td>
-                    {% if livre.possesseur != user %}
+                    {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
                         {% if  livre not in livres_avec_transfert_actif_pour_user %}
                             <form action="/livres/demandetransfert/{{ livre.id }}/" method="get">
                                 <button type="submit">Je suis int&eacute;ress&eacute;</button>
@@ -69,13 +72,12 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Action a faire sur votre nouveau livre</h4>
+                        <h5 class="modal-title">Action a faire sur votre nouveau livre</h5>
                     </div>
                     <div class="modal-body">
-                        <p>Vous venez d'enregistrer le livre '{{ newLivre.titre_text}}', c'est super </p>
-                        <p>pour nous aider à suivre le livre, pourriez vous inscrire ce code '{{ newLivre.livre_code }}' sur la
+                        <p>Vous venez d'enregistrer le livre '{{ newLivre.titre_text }}', c'est super </p>
+                        <p>pour nous aider à suivre le livre, pourriez vous inscrire ce code '{{ newLivre.livre_code }}'
+                            sur la
                             couverture </p>
                         <p>Merci pour votre partage.</p>
                     </div>

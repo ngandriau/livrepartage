@@ -6,19 +6,25 @@ from django.urls import reverse
 from django.utils import dateparse
 from django.utils import timezone
 from django.views import generic
+from django.db.models import Q
 
 from .models import Livre, Transfert
 
 
 @login_required()
 def index_view(request):
-    latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
+    if 'searchinput' in request.POST.keys():
+        search_input = request.POST['searchinput']
+        latest_created_livre_list = Livre.objects.filter(Q(titre_text__contains=search_input) |Q(auteur_text__contains=search_input) ).order_by('-creation_date')[:25]
+    else:
+        latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
+
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
     for l in latest_created_livre_list:
         transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status__in=[
-                                                                    Transfert.TransfertStatus.INITIALISE,
-                                                                    Transfert.TransfertStatus.OKPOSSESSEUR])
+            Transfert.TransfertStatus.INITIALISE,
+            Transfert.TransfertStatus.OKPOSSESSEUR])
         if (transfert):
             livres_avec_transfert_actif_pour_user[l] = transfert
 

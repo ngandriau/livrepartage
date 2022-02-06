@@ -10,11 +10,52 @@
 {% endblock header %}
 
 {% block content %}
-    <form action="{% url 'livres:reqnouvlivre' %}" method="get">
-        <button class="btn btn-primary btn-default" type="submit">Ajout Livre</button>
-    </form>
+    <style media="screen">
+
+        {#  Specific to the search box  #}
+        #searchinput {
+            width: 300px;
+        }
+
+        #searchclear {
+            position: absolute;
+            right: 5px;
+            top: 0;
+            bottom: 0;
+            height: 14px;
+            margin: auto;
+            font-size: 14px;
+            cursor: pointer;
+            color: #ccc;
+        }
+    </style>
+
+    <div class="container">
+
+        <div class="row height d-flex justify-content-center align-items-center">
+            <div class="col-md-1">
+                <form action="{% url 'livres:reqnouvlivre' %}" method="get">
+                    <button class="btn btn-primary btn-default" type="submit">Ajout Livre</button>
+                </form>
+            </div>
+            <div class="col-md-8">
+                <form action="{% url 'livres:index' %}" method="post" id="searchform">
+                    {% csrf_token %}
+                    {#  search built based on https://stackoverflow.com/questions/20062218/how-do-i-clear-a-search-box-with-an-x-in-bootstrap-3              #}
+                    <div class="search"><i class="fa fa-search"></i>
+                        <div class="btn-group">
+                            <input id="searchinput" name="searchinput" type="search" class="form-control"
+                                   placeholder="chercher par titre, auteur...">
+                            <span id="searchclear" class="glyphicon glyphicon-remove-circle"></span>
+                        </div>
+                        <button id="searchbutton" class="btn btn-primary">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                    </div>
+            </div>
+        </div>
+    </div>
+
     {% if latest_created_livre_list %}
-        Les livres les plus r&eacute;cents dans le syst&egrave;me. Bient&ocirc;t la recherche sera disponible :-)
         <table class="table table-striped table-hover">
             <tr>
                 <th scope="col">Titre</th>
@@ -92,14 +133,26 @@
 {% endblock content %}
 
 {% block footer_scripts %}
+    <script type="text/javascript">
+    $("#searchclear").click(function(){
+        $("#searchinput").val('');
+    });
+
+    $("#searchbutton").click(function(){
+        $("#searchform").submit();
+    });
+
     {% if showNewLivreCode %}
-        <script type="text/javascript">
     $(window).load(function(){
         $('#myModal').modal('show');
     });
 
-        </script>
     {% endif %}
+
+
+
+
+    </script>
 {% endblock %}
 
 

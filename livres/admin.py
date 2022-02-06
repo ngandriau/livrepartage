@@ -8,6 +8,7 @@ from .models import UserProfile
 
 # Extension du model d'User pour avoir au moins une 'ville' en plus
 # cf https://docs.djangoproject.com/en/4.0/topics/auth/customizing/
+# https://www.csestack.org/django-default-user-model-fields/
 # which acts a bit like a singleton
 class UserProfileInline(admin.StackedInline):
     model = UserProfile

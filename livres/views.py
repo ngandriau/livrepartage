@@ -83,7 +83,6 @@ def submit_nouveau_livre(request):
     livre = Livre(
         titre_text=request.POST['titre'],
         auteur_text=request.POST['auteur'],
-        creation_date=timezone.now(),
         createur=request.user,
         possesseur=request.user,
         transferable_status=request.POST['transferable_status'],

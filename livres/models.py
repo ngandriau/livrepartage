@@ -18,12 +18,12 @@ class Livre(models.Model):
     publication_date = models.DateField('date publication', null=True, blank=True)
     url_externe_livre_text=models.CharField(max_length=200, blank=True, default='')
     # date d'insertion dans le systeme
-    creation_date = models.DateField('date creation')
+    creation_date = models.DateField(auto_now=True, null=False)
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
 
     def __str__(self):
-        return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}] - creation:[{self.creation_date}] "
+        return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}]"
 
     class TransferableStatus(models.TextChoices):
         DISPONIBLE = 'DISP', _('Disponible')

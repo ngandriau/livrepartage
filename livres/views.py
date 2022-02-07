@@ -235,6 +235,15 @@ def send_message_demandeur_to_prep_transfert(request, pk):
 
     transfert.possesseur_envois_message_date = timezone.now()
     transfert.save()
+
+    sujet = "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous :-)"
+
+    message = f"""\
+Le possesseur du livre '{transfert.livre.titre_text}', pour lequel vous avez fait une demande de transfert le {transfert.creation_date} a communiqué avec vous. 
+Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} et vous pouvez le contacter par email à: {transfert.livre.possesseur.email}"""
+
+    send_email(transfert.livre.possesseur.email, sujet, message)
+
     return HttpResponseRedirect(reverse('livres:index'))
 
 

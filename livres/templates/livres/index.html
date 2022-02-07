@@ -51,6 +51,7 @@
                         <button id="searchbutton" class="btn btn-primary">
                             <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                     </div>
+                </form>
             </div>
         </div>
     </div>
@@ -86,10 +87,12 @@
                 <td>{{ livre.publication_date|date:"d M Y" }}</td>
                 <td>
                     {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
-                        {% if  livre not in livres_avec_transfert_actif_pour_user %}
-                            <form action="/livres/demandetransfert/{{ livre.id }}/" method="get">
+                        {% if livre not in livres_avec_transfert_actif_pour_user %}
+                            <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
+                                {% csrf_token %}
                                 <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
-                                <br></form>
+                                <br>
+                            </form>
                         {% else %}
                             Transfert d&eacute;j&agrave; demand&eacute;
                             {# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}

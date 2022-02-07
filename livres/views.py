@@ -1,12 +1,16 @@
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+
+import dateparser
 from decouple import config
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-import dateparser
 from django.utils import timezone
 from django.views import generic
-from django.db.models import Q
 
 from .models import Livre, Transfert
 
@@ -15,7 +19,9 @@ from .models import Livre, Transfert
 def index_view(request):
     if 'searchinput' in request.POST.keys():
         search_input = request.POST['searchinput']
-        latest_created_livre_list = Livre.objects.filter(Q(titre_text__contains=search_input) |Q(auteur_text__contains=search_input) ).order_by('-creation_date')[:25]
+        latest_created_livre_list = Livre.objects.filter(
+            Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input)).order_by('-creation_date')[
+                                    :25]
     else:
         latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
 
@@ -93,7 +99,7 @@ def submit_nouveau_livre(request):
         possesseur=request.user,
         transferable_status=request.POST['transferable_status'],
         url_externe_livre_text=request.POST['pageweb'],
-        publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
+        publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
@@ -127,10 +133,18 @@ def submit_edit_livre(request):
 
 @login_required()
 def demande_transfert_livre(request, pk):
-    print(f"requete edit livre {pk}")
+    print(f"demande_transfert_livre {pk}")
     livre = get_object_or_404(Livre, pk=pk)
     transfert = Transfert(livre=livre, demandeur=request.user)
     transfert.save()
+
+    sujet = "Quelqu'un est intéressé par un de vos livre :-)"
+
+    message = f"""\
+{request.user.first_name} {request.user.last_name}  est intéressé par votre livre: {livre.titre_text}. Vous pouvez le contacter par email à: {request.user.email}"""
+
+    send_email(livre.possesseur.email, sujet, message)
+
     return HttpResponseRedirect(reverse('livres:index'))
 
 
@@ -222,3 +236,21 @@ def send_message_demandeur_to_prep_transfert(request, pk):
     transfert.possesseur_envois_message_date = timezone.now()
     transfert.save()
     return HttpResponseRedirect(reverse('livres:index'))
+
+
+def send_email(destinataire, sujet, message):
+    print(f"send email a: {destinataire} - {sujet} - {message}")
+    port = 465  # For SSL
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(config('GMAIL_USER'), config('GMAIL_PASS'))
+
+        msg = MIMEText(message)
+        msg.set_charset('utf-8')
+        msg['Subject'] = sujet
+        msg['From'] = config('GMAIL_USER')
+        msg['To'] = destinataire
+
+        server.send_message(msg)

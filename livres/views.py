@@ -240,6 +240,7 @@ def send_message_demandeur_to_prep_transfert(request, pk):
 
 def send_email(destinataire, sujet, message):
     print(f"send email a: {destinataire} - {sujet} - {message}")
+    print(f"  gmail config: {config('GMAIL_USER')} - {config('GMAIL_PASS')}")
     port = 465  # For SSL
     # Create a secure SSL context
     context = ssl.create_default_context()

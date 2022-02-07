@@ -30,6 +30,9 @@
         }
     </style>
 
+    {# Django Tempus Dominus assets are included in `{{ form.media }}` #}
+    {{ form.media }}
+
     <div class="container">
 
         <div class="row height d-flex justify-content-center align-items-center">
@@ -51,6 +54,10 @@
                         <button id="searchbutton" class="btn btn-primary">
                             <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                     </div>
+
+                     {{ form.as_p }}
+                </form>
+
             </div>
         </div>
     </div>
@@ -148,6 +155,9 @@
     });
 
     {% endif %}
+
+
+
 
 
 

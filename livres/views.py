@@ -41,7 +41,7 @@ def index_view(request):
                                                                 transfert_status__in=[
                                                                     Transfert.TransfertStatus.INITIALISE,
                                                                     Transfert.TransfertStatus.OKPOSSESSEUR])
-            .order_by('-ok_demandeur_date')
+            .order_by('-ok_demandeur_date'),
     }
     # request.session['prevaction'] = 'newlivre'
     # request.session['livre_id'] = 'livre.id'

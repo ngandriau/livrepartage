@@ -8,6 +8,22 @@
 {% endblock header %}
 
 {% block content %}
+    <style media="screen">
+
+        #dateEditionClear {
+            position: absolute;
+            right: 5px;
+            top: 0;
+            bottom: 0;
+            height: 14px;
+            margin: auto;
+            font-size: 14px;
+            cursor: pointer;
+            color: #ccc;
+        }
+    </style>
+
+
     {% if action == 'creation' %}
         <form action="{% url 'livres:subnouvlivre' %}" method="post">
     {% else %}
@@ -18,24 +34,39 @@
     <legend><h1>{% if action == 'creation' %}Creation{% else %}Modifier {% endif %} livre</h1></legend>
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     <input type="hidden" name="livre_id" value="{{ livre.id }}">
-    <p/>Titre: <input type="text" name="titre" id="titre" value="{{ livre.titre_text }}">
-    <p/>Auteur(s): <input type="text" name="auteur" id="auteur" value="{{ livre.auteur_text }}">
-{% if action != 'creation' %}
-    <p/>Code de couverture: {{ livre.livre_code }}
-{% endif %}
-    <p/>Date d'&eacutedition: <input type="text" name="dateedition" id="dateedition"
-                                     value="{{ livre.publication_date }}">
-    <p/>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
-    <p/>Status du livre
-    <select name="transferable_status">
-        <option value="DISP" selected>Disponible</option>
-        <option value="LECT">En lecture</option>
-    </select>
+    <div>Titre: <input type="text" name="titre" id="titre" value="{{ livre.titre_text }}"></div>
+    <div>Auteur(s): <input type="text" name="auteur" id="auteur" value="{{ livre.auteur_text }}"></div>
+    {% if action != 'creation' %}
+        <div>Code de couverture: {{ livre.livre_code }}</div>
+    {% endif %}
+    <div class="btn-group">
+        Date d'&eacutedition:<input type="text" name="dateEditionInput" id="dateEditionInput" placeholder="jj/mm/yyyy"
+                                    value='{{ livre.publication_date|date:"d M Y"|default_if_none:"" }}'>
+        <span id="dateEditionClear" class="glyphicon glyphicon-remove-circle"></span>
+    </div>
+    <div>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
+    </div>
+    <div>Status du livre
+        <select name="transferable_status">
+            <option value="DISP" selected>Disponible</option>
+            <option value="LECT">En lecture</option>
+        </select>
+    </div>
 </fieldset>
 <button class="btn btn-primary btn-default" type="submit">Enregistrer</button>
 {% if action == 'creation' %}-
-<button class="btn btn-primary btn-default" type="submit">Enregistrer et cr&eacute&eacute un autre livre</button>
-    {% endif %}
+    <button class="btn btn-primary btn-default" type="submit">Enregistrer et cr&eacute&eacute un autre livre</button>
+{% endif %}
 </form>
 
 {% endblock content %}
+
+{% block footer_scripts %}
+    <script type="text/javascript">
+    $("#dateEditionClear").click(function(){
+        $("#dateEditionInput").val('');
+    });
+
+
+    </script>
+{% endblock %}

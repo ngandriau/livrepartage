@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from django.utils import dateparse
+import dateparser
 from django.utils import timezone
 from django.views import generic
 from django.db.models import Q
@@ -92,7 +92,9 @@ def submit_nouveau_livre(request):
         createur=request.user,
         possesseur=request.user,
         transferable_status=request.POST['transferable_status'],
-        url_externe_livre_text=request.POST['pageweb'])
+        url_externe_livre_text=request.POST['pageweb'],
+        publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
+    )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
     livre.save()
@@ -106,8 +108,6 @@ def submit_nouveau_livre(request):
 @login_required()
 def submit_edit_livre(request):
     print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
-    print(request.POST['dateedition'])
-    print(dateparse.parse_date(request.POST['dateedition']))
 
     livre = get_object_or_404(Livre, pk=request.POST['livre_id'])
 
@@ -119,7 +119,7 @@ def submit_edit_livre(request):
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
     livre.transferable_status = request.POST['transferable_status']
-    livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
+    livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     livre.url_externe_livre_text = request.POST['pageweb']
     livre.save()
     return HttpResponseRedirect(reverse('livres:index'))

@@ -39,7 +39,7 @@
 {#                <td>{{ transfert.id }}</td>#}
                 <td>{{ transfert.livre.titre_text }}</td>
                 <td>{{ transfert.transfert_status }}</td>
-                <td>{{ transfert.livre.possesseur.ville }} </td>
+                <td>{{ transfert.livre.possesseur.userprofile.ville }} </td>
                 <td>{{ transfert.creation_date }} </td>
                 <td>
                     {% if action ==  'listTransfertMesLivres' and transfert.transfert_status == 'INIT' and user == transfert.livre.possesseur %}

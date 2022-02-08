@@ -30,8 +30,16 @@
         }
     </style>
 
-    <div class="container">
+    {% if showSuccessMessage %}
+    <div class="container py-5">
+        <div class="alert alert-success alert-dismissible show">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <strong>Succ&egrave;s!</strong> {{ showSuccessMessage }}
+        </div>
+    </div>
+    {% endif %}
 
+    <div class="container">
         <div class="row height d-flex justify-content-center align-items-center">
             <div class="col-md-1">
                 <form action="{% url 'livres:reqnouvlivre' %}" method="get">
@@ -151,6 +159,9 @@
     });
 
     {% endif %}
+
+
+
 
 
 

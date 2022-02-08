@@ -49,14 +49,29 @@ def index_view(request):
                                                                     Transfert.TransfertStatus.OKPOSSESSEUR])
             .order_by('-ok_demandeur_date')
     }
-    # request.session['prevaction'] = 'newlivre'
-    # request.session['livre_id'] = 'livre.id'
     if (request.session.__contains__('prevaction')):
         if (request.session['prevaction'] == 'newlivre'):
             context['showNewLivreCode'] = True
             context['newLivre'] = get_object_or_404(Livre, pk=request.session['livre_id'])
-            request.session.__delitem__('prevaction')
             request.session.__delitem__('livre_id')
+        elif (request.session['prevaction'] == 'editlivre'):
+            context[
+                'showSuccessMessage'] = f"Le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été modifié."
+            request.session.__delitem__('livre_id')
+        elif (request.session['prevaction'] == 'demandeTransfert'):
+            context['showSuccessMessage'] = f"Votre demande de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
+            request.session.__delitem__('livre_id')
+        elif (request.session['prevaction'] == 'annulationTransfert'):
+            context['showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
+            request.session.__delitem__('livre_id')
+        elif (request.session['prevaction'] == 'sendMessageDemandeur'):
+            transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
+            context['showSuccessMessage'] = f"Message envoyé à '{ transfert.demandeur.email }' pour le livre '{ transfert.livre.titre_text }'."
+            request.session.__delitem__('transfert_id')
+
+        request.session.__delitem__('prevaction')
+
+
     else:
         print("No entry 'prevaction' in session")
     return render(request, 'livres/index.html', context)
@@ -104,8 +119,7 @@ def submit_nouveau_livre(request):
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
     livre.save()
-    print(livre.livre_code)
-    # return redirect(reverse('livres:index'))
+
     request.session['prevaction'] = 'newlivre'
     request.session['livre_id'] = livre.id
     return redirect(reverse('livres:index'))
@@ -128,6 +142,10 @@ def submit_edit_livre(request):
     livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     livre.url_externe_livre_text = request.POST['pageweb']
     livre.save()
+
+    request.session['prevaction'] = 'editlivre'
+    request.session['livre_id'] = livre.id
+
     return HttpResponseRedirect(reverse('livres:index'))
 
 
@@ -144,6 +162,9 @@ def demande_transfert_livre(request, pk):
 {request.user.first_name} {request.user.last_name}  est intéressé par votre livre: {livre.titre_text}. Vous pouvez le contacter par email à: {request.user.email}"""
 
     send_email(livre.possesseur.email, sujet, message)
+
+    request.session['prevaction'] = 'demandeTransfert'
+    request.session['livre_id'] = livre.id
 
     return HttpResponseRedirect(reverse('livres:index'))
 
@@ -182,6 +203,7 @@ def list_mes_demandes_transfert_de_livres(request):
         'action': 'listMesDemandesTransfert',
         'transferts_list': transferts_list
     }
+
     return render(request, 'livres/transferts_list.html', context)
 
 
@@ -221,6 +243,10 @@ def annul_demande_transfert(request, pk):
     transfert.transfert_status = Transfert.TransfertStatus.CANCEL
     transfert.demandeur_cancel_date = timezone.now()
     transfert.save()
+
+    request.session['prevaction'] = 'annulationTransfert'
+    request.session['livre_id'] = transfert.livre.id
+
     return HttpResponseRedirect(reverse('livres:index'))
 
 
@@ -243,6 +269,9 @@ Le possesseur du livre '{transfert.livre.titre_text}', pour lequel vous avez fai
 Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} et vous pouvez le contacter par email à: {transfert.livre.possesseur.email}"""
 
     send_email(transfert.demandeur.email, sujet, message)
+
+    request.session['prevaction'] = 'sendMessageDemandeur'
+    request.session['transfert_id'] = transfert.id
 
     return HttpResponseRedirect(reverse('livres:index'))
 

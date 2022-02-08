@@ -85,6 +85,8 @@ class DetailView(generic.DetailView):
 
 @login_required()
 def requete_nouveau_livre(request):
+    print("requete_nouveau_livre()")
+
     context = {
         'action': 'creation'
     }

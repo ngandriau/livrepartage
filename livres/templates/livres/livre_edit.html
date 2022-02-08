@@ -54,9 +54,7 @@
     </div>
 </fieldset>
 <button class="btn btn-primary btn-default" type="submit">Enregistrer</button>
-{% if action == 'creation' %}-
-    <button class="btn btn-primary btn-default" type="submit">Enregistrer et cr&eacute&eacute un autre livre</button>
-{% endif %}
+
 </form>
 
 {% endblock content %}
@@ -66,7 +64,6 @@
     $("#dateEditionClear").click(function(){
         $("#dateEditionInput").val('');
     });
-
 
     </script>
 {% endblock %}

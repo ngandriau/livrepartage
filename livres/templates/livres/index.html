@@ -10,56 +10,56 @@
 {% endblock header %}
 
 {% block content %}
-    <style media="screen">
-
-        {#  Specific to the search box  #}
-        #searchinput {
-            width: 300px;
-        }
-
-        #searchclear {
-            position: absolute;
-            right: 5px;
-            top: 0;
-            bottom: 0;
-            height: 14px;
-            margin: auto;
-            font-size: 14px;
-            cursor: pointer;
-            color: #ccc;
-        }
-    </style>
-
     {% if showSuccessMessage %}
-    <div class="container py-5">
-        <div class="alert alert-success alert-dismissible show">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <strong>Succ&egrave;s!</strong> {{ showSuccessMessage }}
+        <div class="container">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Succ&egrave;s!</strong> {{ showSuccessMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
-    </div>
     {% endif %}
 
     <div class="container">
-        <div class="row height d-flex justify-content-center align-items-center">
-            <div class="col-md-1">
+
+        <div class="d-flex flex-row bd-highlight align-items-center mb-3">
+            <div class="p-2 bd-highlight">
                 <form action="{% url 'livres:reqnouvlivre' %}" method="get">
                     <button class="btn btn-primary btn-default" type="submit">Ajout Livre</button>
                 </form>
             </div>
-            <div class="col-md-8">
+            <div class="p-2 bd-highlight">
                 <form action="{% url 'livres:index' %}" method="post" id="searchform">
                     {% csrf_token %}
-                    {#  search built based on https://stackoverflow.com/questions/20062218/how-do-i-clear-a-search-box-with-an-x-in-bootstrap-3              #}
+
                     <div class="search"><i class="fa fa-search"></i>
                         <div class="btn-group">
                             <input id="searchinput" name="searchinput" type="search" class="form-control"
                                    placeholder="chercher par titre, auteur...">
-                            <span id="searchclear" class="glyphicon glyphicon-remove-circle"></span>
                         </div>
                         <button id="searchbutton" class="btn btn-primary">
-                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                            <span class="bi bi-search" aria-hidden="true"></span></button>
                     </div>
                 </form>
+            </div>
+            <div class="p-1 bd-highlight">
+                <div class="d-flex flex-column bd-highlight mb-2">
+                    <div class="p-2 bd-highlight">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="jepossede_check">
+                            <label class="form-check-label" for="jepossede_check">
+                                Je possède
+                            </label>
+                        </div>
+                    </div>
+                    <div class="p-2 bd-highlight">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="jaicree_check">
+                            <label class="form-check-label" for="jaicree_check">
+                                J'ai créé
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -120,11 +120,12 @@
     {#        Launch demo modal#}
     {#    </button>#}
     {% if showNewLivreCode %}
-        <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
-            <div class="modal-dialog" role="document">
+        <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Action a faire sur votre nouveau livre</h4>
+                       <h4 class="modal-title">Action a faire sur votre nouveau livre</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <p>Vous venez d'enregistrer le livre '{{ newLivre.titre_text }}', c'est super </p>
@@ -134,37 +135,27 @@
                         <p>Merci pour votre partage.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                     </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endblock content %}
 
 {% block footer_scripts %}
     <script type="text/javascript">
-    $("#searchclear").click(function(){
-        $("#searchinput").val('');
-    });
 
     $("#searchbutton").click(function(){
         $("#searchform").submit();
     });
 
     {% if showNewLivreCode %}
-    $(window).load(function(){
-        $('#myModal').modal('show');
-    });
+    window.onload = () => {
+        $('#messageModal').modal('show');
+    }
 
     {% endif %}
-
-
-
-
-
-
 
     </script>
 {% endblock %}

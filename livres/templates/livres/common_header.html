@@ -1,9 +1,34 @@
-<a href="{% url 'livres:index' %}"  >Partageons nos livres :-)</a> -
-<a href="{% url 'livres:listtransfertmeslivre' %}">demandes pour mes livres ({{ demandes_transfert_mes_livres_list|length }})</a> -
-<a href="{% url 'livres:listreceptionaconfirmer' %}">réceptions de livre &agrave; confirmer ({{receptions_live_a_confirmer_list|length }}) </a> -
-<a href="{% url 'livres:listmesdemandestransfert' %}">mes demandes de transfert ({{mes_demandes_transfert_list|length }}) </a> -
-{% if user.is_authenticated %}
-  Hi {{ user.username }}! - <a href="{% url 'logout' %}">Log Out</a>
-{% else %}
-  !!!You are not logged in - <a href="{% url 'login' %}">Log In</a>
-{% endif %}
+<header class="p-3 bg-dark text-white">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
+                    <use xlink:href="#bootstrap"/>
+                </svg>
+            </a>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="{% url 'livres:index' %}" class="nav-link px-2 text-white">Partageons nos livres :-)</a>
+                </li>
+                <li><a href="{% url 'livres:listtransfertmeslivre' %}" class="nav-link px-2 text-white">demandes pour
+                    mes livres ({{ demandes_transfert_mes_livres_list|length }})</a></li>
+                <li><a href="{% url 'livres:listreceptionaconfirmer' %}" class="nav-link px-2 text-white">réceptions de
+                    livre &agrave; confirmer ({{ receptions_live_a_confirmer_list|length }}) </a></li>
+                <li><a href="{% url 'livres:listmesdemandestransfert' %}" class="nav-link px-2 text-white">mes demandes
+                    de transfert ({{ mes_demandes_transfert_list|length }}) </a></li>
+            </ul>
+
+
+            {% if user.is_authenticated %}
+                <div class="text-end">
+                Hi {{ user.username }}!
+                </div>
+                <div class="text-end">
+                    <form action="{% url 'logout' %}" method="get">
+                    <button type="submit" class="btn btn-warning">Déconnexion</button>
+                    </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</header>

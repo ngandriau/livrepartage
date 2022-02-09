@@ -3,8 +3,6 @@
 
 {% block title %}Bienvenu aux livres{% endblock title %}
 
-
-
 {% block header %}
     {% include 'livres/common_header.html' %}
 {% endblock header %}
@@ -69,7 +67,7 @@
             <tr>
                 <th scope="col">Titre</th>
                 <th scope="col">Auteur(s)</th>
-                <th scope="col">Status</th>
+                <th scope="col">Partage</th>
                 <th scope="col">Code Couverture</th>
                 <th scope="col">Ville</th>
                 <th scope="col">Je poss&egrave;de</th>
@@ -85,7 +83,7 @@
                     {% if livre.possesseur == user %}</a>{% endif %}
                 </td>
                 <td>{{ livre.auteur_text }}</td>
-                <td>{{ livre.transferable_status }} </td>
+                <td>{{ livre.mode_partage }} </td>
                 <td>{{ livre.livre_code }} </td>
                 <td>{{ livre.possesseur.userprofile.ville }} </td>
                 <td>{% if livre.possesseur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %}

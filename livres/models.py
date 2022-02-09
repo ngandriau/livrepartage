@@ -13,6 +13,9 @@ class UserProfile(models.Model):
 class Livre(models.Model):
     # ceci n'est pas la primary key, mais le code a écrire sur le livre pour le retracer
     livre_code = models.CharField(max_length=20, blank=True, default='')
+
+    # usage anticipé, permettre de saisir 3 mots pour décrire le livre en plus du titre qui seront dans la recherche
+    mots_sujets_txt = models.CharField(max_length=20, blank=True, default='')
     titre_text = models.CharField(max_length=200)
     auteur_text = models.CharField(max_length=200, blank=True, default='')
     publication_date = models.DateField('date publication', null=True, blank=True)
@@ -24,6 +27,16 @@ class Livre(models.Model):
 
     def __str__(self):
         return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}]"
+
+    class ModeDePartage(models.TextChoices):
+        DON = 'DON', _('Don')
+        PRET = 'PRET', _('Pret')
+
+    mode_partage = models.CharField(
+        max_length=4,
+        choices=ModeDePartage.choices,
+        default=ModeDePartage.DON,
+    )
 
     class TransferableStatus(models.TextChoices):
         DISPONIBLE = 'DISP', _('Disponible')

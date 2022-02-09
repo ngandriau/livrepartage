@@ -46,12 +46,17 @@
     </div>
     <div>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
     </div>
-    <div>Status du livre
-        <select name="transferable_status">
-            <option value="DISP" selected>Disponible</option>
-            <option value="LECT">En lecture</option>
+    <div>Mode de partage du livre
+        <select name="mode_partage">
+            <option value="DON" {% if action != 'creation' and livre.mode_partage == 'DON' %}selected {% endif %}
+                    selected>Don
+            </option>
+            <option value="PRET" {% if action != 'creation' and livre.mode_partage == 'PRET' %}selected {% endif %}
+                    selected>Prêt
+            </option>
         </select>
-    </div>
+    </div>3 mots sujets: <input type="text" name="motssujets" id="motssujets" value="{{ livre.mots_sujets_txt }}">
+    <div></div>
 </fieldset>
 <button class="btn btn-primary btn-default" type="submit">Enregistrer</button>
 
@@ -64,6 +69,8 @@
     $("#dateEditionClear").click(function(){
         $("#dateEditionInput").val('');
     });
+
+
 
     </script>
 {% endblock %}

@@ -20,7 +20,7 @@ def index_view(request):
     if 'searchinput' in request.POST.keys():
         search_input = request.POST['searchinput']
         latest_created_livre_list = Livre.objects.filter(
-            Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input)).order_by('-creation_date')[
+            Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input) |  Q(mots_sujets_txt__contains=search_input)).order_by('-creation_date')[
                                     :25]
     else:
         latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
@@ -106,7 +106,7 @@ def requete_edit_livre(request, pk):
 
 @login_required()
 def submit_nouveau_livre(request):
-    print(f"submit_nouveau_livre({request.POST['titre']}) - status: {request.POST['transferable_status']}")
+    print(f"submit_nouveau_livre({request.POST['titre']}) ")
     # livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
 
     livre = Livre(
@@ -114,9 +114,10 @@ def submit_nouveau_livre(request):
         auteur_text=request.POST['auteur'],
         createur=request.user,
         possesseur=request.user,
-        transferable_status=request.POST['transferable_status'],
+        mode_partage=request.POST['mode_partage'],
         url_externe_livre_text=request.POST['pageweb'],
-        publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
+        publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr']),
+        mots_sujets_txt= selectionnerTroisPremiersMots(request.POST['motssujets'])
     )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
@@ -129,7 +130,7 @@ def submit_nouveau_livre(request):
 
 @login_required()
 def submit_edit_livre(request):
-    print(f"submit_edit_livre({request.POST['livre_id']}) - status: {request.POST['transferable_status']}")
+    print(f"submit_edit_livre({request.POST['livre_id']})")
 
     livre = get_object_or_404(Livre, pk=request.POST['livre_id'])
 
@@ -140,9 +141,10 @@ def submit_edit_livre(request):
 
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
-    livre.transferable_status = request.POST['transferable_status']
+    livre.mode_partage = request.POST['mode_partage']
     livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     livre.url_externe_livre_text = request.POST['pageweb']
+    livre.mots_sujets_txt = selectionnerTroisPremiersMots(request.POST['motssujets'])
     livre.save()
 
     request.session['prevaction'] = 'editlivre'
@@ -150,6 +152,14 @@ def submit_edit_livre(request):
 
     return HttpResponseRedirect(reverse('livres:index'))
 
+def selectionnerTroisPremiersMots(mots_str):
+    """
+
+    :param mots_str:
+    :return: une string qui contient au plus 3 mots
+    """
+    mots_list = mots_str.split()
+    return " ".join(mots_list[0:3])
 
 @login_required()
 def demande_transfert_livre(request, pk):

@@ -42,7 +42,7 @@
     <div class="btn-group">
         Date d'&eacutedition:<input type="text" name="dateEditionInput" id="dateEditionInput" placeholder="jj/mm/yyyy"
                                     value='{{ livre.publication_date|date:"d M Y"|default_if_none:"" }}'>
-        <span id="dateEditionClear" class="glyphicon glyphicon-remove-circle"></span>
+        <span id="dateEditionClear" class="bi bi-x-circle"></span>
     </div>
     <div>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
     </div>

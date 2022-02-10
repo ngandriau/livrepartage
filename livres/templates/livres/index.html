@@ -8,6 +8,7 @@
 {% endblock header %}
 
 {% block content %}
+
     {% if showSuccessMessage %}
         <div class="container">
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -19,9 +20,9 @@
 
     <div class="container">
 
-<form action="{% url 'livres:index' %}" method="post" id="searchform" name="searchform">
-             {% csrf_token %}
-</form>
+        <form action="{% url 'livres:index' %}" method="post" id="searchform" name="searchform">
+            {% csrf_token %}
+        </form>
 
         <div class="d-flex flex-row bd-highlight align-items-center mb-3">
             <div class="p-2 bd-highlight">
@@ -30,39 +31,58 @@
                 </form>
             </div>
 
-                <div class="p-2 bd-highlight">
-                    <div class="search"><i class="fa fa-search"></i>
-                        <div class="btn-group">
-                            <input id="searchinput" name="searchinput" type="search" class="form-control" form="searchform"
-                                   placeholder="chercher par titre, auteur, mots sujets...">
-                        </div>
-                        <button id="searchbutton" class="btn btn-primary">
-                            <span class="bi bi-search" aria-hidden="true"></span></button>
+            <div class="p-2 bd-highlight">
+                <div class="search"><i class="fa fa-search"></i>
+                    <div class="btn-group">
+                        <input id="searchinput" name="searchinput" type="search" class="form-control" form="searchform"
+                               placeholder="chercher par titre, auteur, mots sujets...">
                     </div>
+                    <button id="searchbutton" class="btn btn-primary">
+                        <span class="bi bi-search" aria-hidden="true"></span></button>
                 </div>
-                <div class="p-2 bd-highlight">
-                    <div class="d-flex flex-column bd-highlight mb-2">
-                        <div class="p-2 bd-highlight">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="jepossede_check" form="searchform"
-                                       name="jepossede_check">
-                                <label class="form-check-label" for="jepossede_check">
-                                    Je possède
-                                </label>
-                            </div>
-                        </div>
-                        <div class="p-2 bd-highlight">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="jaicree_check" form="searchform"
-                                       name="jaicree_check">
-                                <label class="form-check-label" for="jaicree_check">
-                                    J'ai créé
-                                </label>
-                            </div>
+            </div>
+            <div class="p-2 bd-highlight">
+                <div class="d-flex flex-column bd-highlight mb-2">
+                    <div class="p-2 bd-highlight">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" id="jepossede_check"
+                                   form="searchform"
+                                   name="jepossede_check">
+                            <label class="form-check-label" for="jepossede_check">
+                                Je possède
+                            </label>
                         </div>
                     </div>
+                    <div class="p-2 bd-highlight">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" id="jaicree_check"
+                                   form="searchform"
+                                   name="jaicree_check">
+                            <label class="form-check-label" for="jaicree_check">
+                                J'ai créé
+                            </label>
+                        </div>
+                    </div>
                 </div>
-{#            </form>#}
+            </div>
+            <div class="p-2 bd-highlight">
+                <div class="d-flex flex-column bd-highlight mb-2">
+                    <div class="p-2 bd-highlight">
+                        <input type="text" name="dateEditionInputAfter" id="dateEditionInputAfter" form="searchform"
+                               placeholder="jj/mm/yyyy" size="6">
+                        publication
+                        <input type="text" name="dateEditionInputBefore" id="dateEditionInputBefore" form="searchform"
+                               placeholder="jj/mm/yyyy" size="6">
+                    </div>
+                     <div class="p-2 bd-highlight">
+                        <input type="text" name="dateCreationInputAfter" id="dateCreationInputAfter" form="searchform"
+                               placeholder="jj/mm/yyyy" size="6">
+                        ajout
+                        <input type="text" name="dateCreationInputBefore" id="dateCreationInputBefore" form="searchform"
+                               placeholder="jj/mm/yyyy" size="6">
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -160,6 +180,11 @@
     }
 
     {% endif %}
+
+
+
+
+
 
 
 

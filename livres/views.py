@@ -37,6 +37,30 @@ def index_view(request):
         else:
             queryset = queryset.exclude(Q(createur=request.user))
 
+        if request.POST.get('dateEditionInputAfter'):
+            d = dateparser.parse(request.POST['dateEditionInputAfter'], languages=['fr'])
+            print(f"  dateEditionInputAfter: {d}")
+            queryset = queryset.exclude(publication_date__lte=d)
+
+        if request.POST.get('dateEditionInputBefore'):
+            d = dateparser.parse(request.POST['dateEditionInputBefore'], languages=['fr'])
+            print(f"  dateEditionInputBefore: {d}")
+            queryset = queryset.exclude(publication_date__gte=d)
+
+
+
+        if request.POST.get('dateCreationInputAfter'):
+            d = dateparser.parse(request.POST['dateCreationInputAfter'], languages=['fr'])
+            print(f"  dateCreationInputAfter: {d}")
+            queryset = queryset.exclude(creation_date__lte=d)
+
+        if request.POST.get('dateCreationInputBefore'):
+            d = dateparser.parse(request.POST['dateCreationInputBefore'], languages=['fr'])
+            print(f"  dateCreationInputBefore: {d}")
+            queryset = queryset.exclude(creation_date__gte=d)
+
+
+
         latest_created_livre_list = queryset.order_by('-creation_date')[:25]
     else:
         latest_created_livre_list = Livre.objects.filter(

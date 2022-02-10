@@ -17,13 +17,30 @@ from .models import Livre, Transfert
 
 @login_required()
 def index_view(request):
+    print(f"index_view(POST: {request.POST})")
+
+    latest_created_livre_list = []
     if 'searchinput' in request.POST.keys():
-        search_input = request.POST['searchinput']
-        latest_created_livre_list = Livre.objects.filter(
-            Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input) |  Q(mots_sujets_txt__contains=search_input)).order_by('-creation_date')[
-                                    :25]
+        queryset = Livre.objects.all()
+        if request.POST.get('searchinput'):
+            search_input = request.POST['searchinput']
+            queryset = queryset.filter(Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input) | Q(
+                mots_sujets_txt__contains=search_input))
+
+        if request.POST.get('jepossede_check'):
+            queryset = queryset.exclude(~Q(possesseur=request.user))
+        else:
+            queryset = queryset.exclude(Q(possesseur=request.user))
+
+        if request.POST.get('jaicree_check'):
+            queryset = queryset.exclude(~Q(createur=request.user))
+        else:
+            queryset = queryset.exclude(Q(createur=request.user))
+
+        latest_created_livre_list = queryset.order_by('-creation_date')[:25]
     else:
-        latest_created_livre_list = Livre.objects.order_by('-creation_date')[:25]
+        latest_created_livre_list = Livre.objects.filter(
+            ~Q(possesseur=request.user) & ~Q(createur=request.user)).order_by('-creation_date')[:25]
 
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
@@ -59,14 +76,17 @@ def index_view(request):
                 'showSuccessMessage'] = f"Le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été modifié."
             request.session.__delitem__('livre_id')
         elif (request.session['prevaction'] == 'demandeTransfert'):
-            context['showSuccessMessage'] = f"Votre demande de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
+            context[
+                'showSuccessMessage'] = f"Votre demande de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
             request.session.__delitem__('livre_id')
         elif (request.session['prevaction'] == 'annulationTransfert'):
-            context['showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
+            context[
+                'showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
             request.session.__delitem__('livre_id')
         elif (request.session['prevaction'] == 'sendMessageDemandeur'):
             transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
-            context['showSuccessMessage'] = f"Message envoyé à '{ transfert.demandeur.email }' pour le livre '{ transfert.livre.titre_text }'."
+            context[
+                'showSuccessMessage'] = f"Message envoyé à '{transfert.demandeur.email}' pour le livre '{transfert.livre.titre_text}'."
             request.session.__delitem__('transfert_id')
 
         request.session.__delitem__('prevaction')
@@ -117,7 +137,7 @@ def submit_nouveau_livre(request):
         mode_partage=request.POST['mode_partage'],
         url_externe_livre_text=request.POST['pageweb'],
         publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr']),
-        mots_sujets_txt= selectionnerTroisPremiersMots(request.POST['motssujets'])
+        mots_sujets_txt=selectionnerTroisPremiersMots(request.POST['motssujets'])
     )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
@@ -152,6 +172,7 @@ def submit_edit_livre(request):
 
     return HttpResponseRedirect(reverse('livres:index'))
 
+
 def selectionnerTroisPremiersMots(mots_str):
     """
 
@@ -160,6 +181,7 @@ def selectionnerTroisPremiersMots(mots_str):
     """
     mots_list = mots_str.split()
     return " ".join(mots_list[0:3])
+
 
 @login_required()
 def demande_transfert_livre(request, pk):

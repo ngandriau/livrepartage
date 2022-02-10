@@ -26,7 +26,7 @@ class Livre(models.Model):
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
 
     def __str__(self):
-        return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}]"
+        return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}]- createur:[{self.createur}]"
 
     class ModeDePartage(models.TextChoices):
         DON = 'DON', _('Don')

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 
 class UserProfile(models.Model):
@@ -21,9 +22,16 @@ class Livre(models.Model):
     publication_date = models.DateField('date publication', null=True, blank=True)
     url_externe_livre_text=models.CharField(max_length=200, blank=True, default='')
     # date d'insertion dans le systeme
-    creation_date = models.DateField(auto_now=True, null=False)
+    creation_date = models.DateField(editable=False)
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.creation_date = timezone.now()
+
+        return super(Livre, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.titre_text} - code:[{self.livre_code}] - owner:[{self.possesseur}]- createur:[{self.createur}]"

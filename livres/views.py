@@ -14,6 +14,7 @@ from django.views import generic
 
 from .models import Livre, Transfert
 
+
 class LivreSearchCriteria:
     def __init__(self, searchinput='', jaicree=False, jepossede=False, dateEditionAfter='', dateEditionBefore='', dateCreationAfter='', dateCreationBefore=''):
         self.searchinput = searchinput
@@ -26,16 +27,15 @@ class LivreSearchCriteria:
 
 def loadLivreSearchCriteriaFromSession(session):
     livreSearchCriteria = LivreSearchCriteria()
-    if (session.__contains__('LivreSearchCriteria')):
-        livreSearchCriteria = session['LivreSearchCriteria']
-    else:
-        livreSearchCriteria.searchinput = session.get('livreSearchInput', '')
-        livreSearchCriteria.jaicree = session.get('jaicree', False)
-        livreSearchCriteria.jepossede = session.get('jepossede', False)
-        livreSearchCriteria.dateEditionAfter = session.get('dateEditionAfter', '')
-        livreSearchCriteria.dateEditionBefore = session.get('dateEditionBefore', '')
-        livreSearchCriteria.dateCreationAfter = session.get('dateCreationAfter', '')
-        livreSearchCriteria.dateCreationBefore = session.get('dateCreationBefore', '')
+
+    livreSearchCriteria.searchinput = session.get('livreSearchInput', '')
+    print(f"loadLivreSearchCriteriaFromSession() - searchinput=={livreSearchCriteria.searchinput}")
+    livreSearchCriteria.jaicree = session.get('jaicree', False)
+    livreSearchCriteria.jepossede = session.get('jepossede', False)
+    livreSearchCriteria.dateEditionAfter = session.get('dateEditionAfter', '')
+    livreSearchCriteria.dateEditionBefore = session.get('dateEditionBefore', '')
+    livreSearchCriteria.dateCreationAfter = session.get('dateCreationAfter', '')
+    livreSearchCriteria.dateCreationBefore = session.get('dateCreationBefore', '')
 
     return livreSearchCriteria
 
@@ -52,64 +52,101 @@ def writeLivreSearchCriteriaFromSession(session, criteria):
 def index_view(request):
     print(f"index_view(POST: {request.POST})")
 
+    # recuperer les criteres de recherche dans la session si existe
     livreSearchCriteria = loadLivreSearchCriteriaFromSession(request.session)
 
-    latest_created_livre_list = []
-    if 'searchinput' in request.POST.keys():
-        queryset = Livre.objects.all()
+
+    # si l'action est vraiment une recherche de livre avec un formulaire, mettre a jours nos criteres
+    if(request.POST.get('cherchelivre')):
         if request.POST.get('searchinput'):
-            search_input = request.POST['searchinput']
-            livreSearchCriteria.searchinput = search_input
-            queryset = queryset.filter(Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input) | Q(
-                mots_sujets_txt__contains=search_input))
+            livreSearchCriteria.searchinput = request.POST['searchinput']
+        else:
+            livreSearchCriteria.searchinput = ''
 
         if request.POST.get('jepossede_check'):
             livreSearchCriteria.jepossede = True
-            queryset = queryset.exclude(~Q(possesseur=request.user))
         else:
             livreSearchCriteria.jepossede = False
-            queryset = queryset.exclude(Q(possesseur=request.user))
 
         if request.POST.get('jaicree_check'):
             livreSearchCriteria.jaicree = True
-            queryset = queryset.exclude(~Q(createur=request.user))
         else:
             livreSearchCriteria.jaicree = False
-            queryset = queryset.exclude(Q(createur=request.user))
 
         if request.POST.get('dateEditionInputAfter'):
-            d = dateparser.parse(request.POST['dateEditionInputAfter'], languages=['fr'])
             livreSearchCriteria.dateEditionAfter = request.POST['dateEditionInputAfter']
-            queryset = queryset.exclude(publication_date__lte=d)
         else:
             livreSearchCriteria.dateEditionAfter = ''
 
         if request.POST.get('dateEditionInputBefore'):
-            d = dateparser.parse(request.POST['dateEditionInputBefore'], languages=['fr'])
             livreSearchCriteria.dateEditionBefore = request.POST['dateEditionInputBefore']
-            queryset = queryset.exclude(publication_date__gte=d)
         else:
             livreSearchCriteria.dateEditionBefore = ''
 
         if request.POST.get('dateCreationInputAfter'):
-            d = dateparser.parse(request.POST['dateCreationInputAfter'], languages=['fr'])
             livreSearchCriteria.dateCreationAfter = request.POST['dateCreationInputAfter']
-            queryset = queryset.exclude(creation_date__lte=d)
         else:
             livreSearchCriteria.dateCreationAfter = ''
 
         if request.POST.get('dateCreationInputBefore'):
-            d = dateparser.parse(request.POST['dateCreationInputBefore'], languages=['fr'])
             livreSearchCriteria.dateCreationBefore = request.POST['dateCreationInputBefore']
-            queryset = queryset.exclude(creation_date__gte=d)
         else:
             livreSearchCriteria.dateCreationBefore = ''
 
-        latest_created_livre_list = queryset.order_by('-creation_date')[:25]
-    else:
-        latest_created_livre_list = Livre.objects.filter(
-            ~Q(possesseur=request.user) & ~Q(createur=request.user)).order_by('-creation_date')[:25]
+    print(f"  livreSearchCriteria.searchinput: {livreSearchCriteria.searchinput}")
+    queryset = Livre.objects.all()
+    queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
+            auteur_text__contains=livreSearchCriteria.searchinput) | Q(
+            mots_sujets_txt__contains=livreSearchCriteria.searchinput))
 
+    if livreSearchCriteria.jepossede:
+        queryset = queryset.exclude(~Q(possesseur=request.user))
+    else:
+        queryset = queryset.exclude(Q(possesseur=request.user))
+
+    if livreSearchCriteria.jaicree:
+        queryset = queryset.exclude(~Q(createur=request.user))
+    else:
+        queryset = queryset.exclude(Q(createur=request.user))
+
+    if(livreSearchCriteria.dateEditionAfter):
+        try:
+            d = dateparser.parse(livreSearchCriteria.dateEditionAfter, languages=['fr'])
+            queryset = queryset.exclude(publication_date__lte=d)
+        except:
+            print(f"index_view() - ex while parsing dateEditionAfter with value:[{livreSearchCriteria.dateEditionAfter}]")
+            livreSearchCriteria.dateEditionAfter = f"INVALIDE: {livreSearchCriteria.dateEditionAfter}"
+
+    if (livreSearchCriteria.dateEditionBefore):
+        try:
+            d = dateparser.parse(livreSearchCriteria.dateEditionBefore, languages=['fr'])
+            queryset = queryset.exclude(publication_date__gte=d)
+        except:
+            print(
+                f"index_view() - ex while parsing dateEditionBefore with value:[{livreSearchCriteria.dateEditionBefore}]")
+            livreSearchCriteria.dateEditionBefore = f"INVALIDE: {livreSearchCriteria.dateEditionBefore}"
+
+    if livreSearchCriteria.dateCreationAfter:
+        try:
+            d = dateparser.parse(livreSearchCriteria.dateCreationAfter, languages=['fr'])
+            queryset = queryset.exclude(creation_date__lte=d)
+        except:
+            print(
+                f"index_view() - ex while parsing dateCreationAfter with value:[{livreSearchCriteria.dateCreationAfter}]")
+            livreSearchCriteria.dateCreationAfter = f"INVALIDE: {livreSearchCriteria.dateCreationAfter}"
+
+    if (livreSearchCriteria.dateCreationBefore):
+        try:
+            d = dateparser.parse(livreSearchCriteria.dateCreationBefore, languages=['fr'])
+            queryset = queryset.exclude(creation_date__gte=d)
+        except:
+            print(
+                f"index_view() - ex while parsing dateCreationBefore with value:[{livreSearchCriteria.dateCreationBefore}]")
+            livreSearchCriteria.dateCreationBefore = f"INVALIDE: {livreSearchCriteria.dateCreationBefore}"
+
+
+
+    latest_created_livre_list = queryset.order_by('-creation_date')[:25]
 
     writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
 
@@ -201,8 +238,7 @@ def requete_edit_livre(request, pk):
 
 @login_required()
 def submit_nouveau_livre(request):
-    print(f"submit_nouveau_livre({request.POST['titre']}) ")
-    # livre.publication_date = dateparse.parse_date(request.POST['dateedition'])
+    print(f"submit_nouveau_livre({request.POST}) ")
 
     livre = Livre(
         titre_text=request.POST['titre'],

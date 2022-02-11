@@ -22,6 +22,7 @@
 
         <form action="{% url 'livres:index' %}" method="post" id="searchform" name="searchform">
             {% csrf_token %}
+            <input type="hidden" name="cherchelivre" value="true"/>
         </form>
 
         <div class="d-flex flex-row bd-highlight align-items-center mb-3">

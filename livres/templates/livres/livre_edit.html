@@ -8,69 +8,87 @@
 {% endblock header %}
 
 {% block content %}
-    <style media="screen">
-
-        #dateEditionClear {
-            position: absolute;
-            right: 5px;
-            top: 0;
-            bottom: 0;
-            height: 14px;
-            margin: auto;
-            font-size: 14px;
-            cursor: pointer;
-            color: #ccc;
-        }
-    </style>
-
-
+    <legend><h1>{% if action == 'creation' %}Nouveau {% else %}Modifier {% endif %} livre</h1></legend>
     {% if action == 'creation' %}
         <form action="{% url 'livres:subnouvlivre' %}" method="post">
     {% else %}
         <form action="{% url 'livres:subeditlivre' %}" method="post">
     {% endif %}
 {% csrf_token %}
-<fieldset>
-    <legend><h1>{% if action == 'creation' %}Creation{% else %}Modifier {% endif %} livre</h1></legend>
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    <input type="hidden" name="livre_id" value="{{ livre.id }}">
-    <div>Titre: <input type="text" name="titre" id="titre" value="{{ livre.titre_text }}"></div>
-    <div>Auteur(s): <input type="text" name="auteur" id="auteur" value="{{ livre.auteur_text }}"></div>
-    {% if action != 'creation' %}
-        <div>Code de couverture: {{ livre.livre_code }}</div>
-    {% endif %}
-    <div class="btn-group">
-        Date de publication:<input type="text" name="dateEditionInput" id="dateEditionInput" placeholder="jj/mm/yyyy"
-                                    value='{{ livre.publication_date|date:"d M Y"|default_if_none:"" }}'>
-        <span id="dateEditionClear" class="bi bi-x-circle"></span>
-    </div>
-    <div>Page web d'info: <input type="text" name="pageweb" id="pageweb" value="{{ livre.url_externe_livre_text }}">
-    </div>
-    <div>Mode de partage du livre
-        <select name="mode_partage">
-            <option value="DON" {% if action != 'creation' and livre.mode_partage == 'DON' %}selected {% endif %}
-                    selected>Don
+<input type="hidden" name="livre_id" value="{{ livre.id }}">
+
+<div class="form-group row">
+    <label for="mode_partage" class="col-sm-2 col-form-label">Mode de partage du livre:</label>
+    <div class="col-sm-10">
+        <select class="form-control" id="mode_partage" name="mode_partage">
+            <option value="DON" {% if action != 'creation' and livre.mode_partage == 'DON' %}selected {% endif %}>Don
             </option>
-            <option value="PRET" {% if action != 'creation' and livre.mode_partage == 'PRET' %}selected {% endif %}
-                    selected>Prêt
+            <option value="PRET" {% if action != 'creation' and livre.mode_partage == 'PRET' %}selected {% endif %}>Prêt
             </option>
         </select>
-    </div>3 mots sujets: <input type="text" name="motssujets" id="motssujets" value="{{ livre.mots_sujets_txt }}">
-    <div></div>
-</fieldset>
-<button class="btn btn-primary btn-default" type="submit">Enregistrer</button>
+    </div>
+</div>
+
+<div class="form-group row">
+    <label for="titre" class="col-sm-2 col-form-label">Titre:</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="titre" name="titre" value="{{ livre.titre_text }}" required>
+    </div>
+</div>
+<div class="form-group row">
+    <label for="auteur" class="col-sm-2 col-form-label">Auteur(s):</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="auteur" name="auteur" value="{{ livre.auteur_text }}">
+    </div>
+</div>
+
+{% if action != 'creation' %}
+    <div class="form-group row">
+        <label for="codecouverture" class="col-sm-2 col-form-label">Code de couverture:</label>
+        <div class="col-sm-10">
+            <input type="text" readonly class="form-control-plaintext" id="codecouverture"
+                   value="{{ livre.livre_code }}">
+        </div>
+    </div>
+{% endif %}
+
+<div class="form-group row">
+    <label for="dateEditionInput" class="col-sm-2 col-form-label">Date de publication:</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="dateEditionInput" name="dateEditionInput"
+               value='{{ livre.publication_date|date:"d M Y"|default_if_none:"" }}' placeholder="jj/mm/yyyy">
+    </div>
+</div>
+
+<div class="form-group row">
+    <label for="pageweb" class="col-sm-2 col-form-label">Page web d'info:</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="pageweb" name="pageweb"
+               value="{{ livre.url_externe_livre_text }}" placeholder="https://.....">
+    </div>
+</div>
+
+<div class="form-group row">
+    <label for="motssujets" class="col-sm-2 col-form-label">3 mots sujets:</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="motssujets" name="motssujets"
+               value="{{ livre.mots_sujets_txt }}" placeholder="3 mots pour compléter la description de ce livre.">
+    </div>
+</div>
+
+
+<div class="form-group row">
+    <div class="col-sm-10">
+        {% if action == 'creation' %}
+            <button type="submit" class="btn btn-primary">Enregistrer nouveau Livre</button>
+        {%  else %}
+            <button type="submit" class="btn btn-primary">Enregistrer modifications Livre</button>
+        {% endif %}
+    </div>
+</div>
 
 </form>
 
 {% endblock content %}
 
-{% block footer_scripts %}
-    <script type="text/javascript">
-    $("#dateEditionClear").click(function(){
-        $("#dateEditionInput").val('');
-    });
-
-
-
-    </script>
-{% endblock %}
+{% block footer_scripts %}{% endblock %}

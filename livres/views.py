@@ -14,57 +14,104 @@ from django.views import generic
 
 from .models import Livre, Transfert
 
+class LivreSearchCriteria:
+    def __init__(self, searchinput='', jaicree=False, jepossede=False, dateEditionAfter='', dateEditionBefore='', dateCreationAfter='', dateCreationBefore=''):
+        self.searchinput = searchinput
+        self.jaicree = jaicree
+        self.jepossede = jepossede
+        self.dateEditionAfter = dateEditionAfter
+        self.dateEditionBefore = dateEditionBefore
+        self.dateCreationAfter = dateCreationAfter
+        self.dateCreationBefore = dateCreationBefore
+
+def loadLivreSearchCriteriaFromSession(session):
+    livreSearchCriteria = LivreSearchCriteria()
+    if (session.__contains__('LivreSearchCriteria')):
+        livreSearchCriteria = session['LivreSearchCriteria']
+    else:
+        livreSearchCriteria.searchinput = session.get('livreSearchInput', '')
+        livreSearchCriteria.jaicree = session.get('jaicree', False)
+        livreSearchCriteria.jepossede = session.get('jepossede', False)
+        livreSearchCriteria.dateEditionAfter = session.get('dateEditionAfter', '')
+        livreSearchCriteria.dateEditionBefore = session.get('dateEditionBefore', '')
+        livreSearchCriteria.dateCreationAfter = session.get('dateCreationAfter', '')
+        livreSearchCriteria.dateCreationBefore = session.get('dateCreationBefore', '')
+
+    return livreSearchCriteria
+
+def writeLivreSearchCriteriaFromSession(session, criteria):
+    session['livreSearchInput'] = criteria.searchinput
+    session['jaicree'] = criteria.jaicree
+    session['jepossede'] = criteria.jepossede
+    session['dateEditionAfter'] = criteria.dateEditionAfter
+    session['dateEditionBefore'] = criteria.dateEditionBefore
+    session['dateCreationAfter'] = criteria.dateCreationAfter
+    session['dateCreationBefore'] = criteria.dateCreationBefore
 
 @login_required()
 def index_view(request):
     print(f"index_view(POST: {request.POST})")
+
+    livreSearchCriteria = loadLivreSearchCriteriaFromSession(request.session)
 
     latest_created_livre_list = []
     if 'searchinput' in request.POST.keys():
         queryset = Livre.objects.all()
         if request.POST.get('searchinput'):
             search_input = request.POST['searchinput']
+            livreSearchCriteria.searchinput = search_input
             queryset = queryset.filter(Q(titre_text__contains=search_input) | Q(auteur_text__contains=search_input) | Q(
                 mots_sujets_txt__contains=search_input))
 
         if request.POST.get('jepossede_check'):
+            livreSearchCriteria.jepossede = True
             queryset = queryset.exclude(~Q(possesseur=request.user))
         else:
+            livreSearchCriteria.jepossede = False
             queryset = queryset.exclude(Q(possesseur=request.user))
 
         if request.POST.get('jaicree_check'):
+            livreSearchCriteria.jaicree = True
             queryset = queryset.exclude(~Q(createur=request.user))
         else:
+            livreSearchCriteria.jaicree = False
             queryset = queryset.exclude(Q(createur=request.user))
 
         if request.POST.get('dateEditionInputAfter'):
             d = dateparser.parse(request.POST['dateEditionInputAfter'], languages=['fr'])
-            print(f"  dateEditionInputAfter: {d}")
+            livreSearchCriteria.dateEditionAfter = request.POST['dateEditionInputAfter']
             queryset = queryset.exclude(publication_date__lte=d)
+        else:
+            livreSearchCriteria.dateEditionAfter = ''
 
         if request.POST.get('dateEditionInputBefore'):
             d = dateparser.parse(request.POST['dateEditionInputBefore'], languages=['fr'])
-            print(f"  dateEditionInputBefore: {d}")
+            livreSearchCriteria.dateEditionBefore = request.POST['dateEditionInputBefore']
             queryset = queryset.exclude(publication_date__gte=d)
-
-
+        else:
+            livreSearchCriteria.dateEditionBefore = ''
 
         if request.POST.get('dateCreationInputAfter'):
             d = dateparser.parse(request.POST['dateCreationInputAfter'], languages=['fr'])
-            print(f"  dateCreationInputAfter: {d}")
+            livreSearchCriteria.dateCreationAfter = request.POST['dateCreationInputAfter']
             queryset = queryset.exclude(creation_date__lte=d)
+        else:
+            livreSearchCriteria.dateCreationAfter = ''
 
         if request.POST.get('dateCreationInputBefore'):
             d = dateparser.parse(request.POST['dateCreationInputBefore'], languages=['fr'])
-            print(f"  dateCreationInputBefore: {d}")
+            livreSearchCriteria.dateCreationBefore = request.POST['dateCreationInputBefore']
             queryset = queryset.exclude(creation_date__gte=d)
-
-
+        else:
+            livreSearchCriteria.dateCreationBefore = ''
 
         latest_created_livre_list = queryset.order_by('-creation_date')[:25]
     else:
         latest_created_livre_list = Livre.objects.filter(
             ~Q(possesseur=request.user) & ~Q(createur=request.user)).order_by('-creation_date')[:25]
+
+
+    writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
 
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
@@ -76,14 +123,18 @@ def index_view(request):
             livres_avec_transfert_actif_pour_user[l] = transfert
 
     context = {
+        'livreSearchCriteria': livreSearchCriteria,
         'latest_created_livre_list': latest_created_livre_list,
         'livres_avec_transfert_actif_pour_user': livres_avec_transfert_actif_pour_user,
+
         'demandes_transfert_mes_livres_list': Transfert.objects.filter(livre__possesseur=request.user,
                                                                        transfert_status='INIT')
             .order_by('-creation_date'),
+
         'receptions_live_a_confirmer_list': Transfert.objects.filter(demandeur=request.user,
                                                                      transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR)
             .order_by('-ok_demandeur_date'),
+
         'mes_demandes_transfert_list': Transfert.objects.filter(demandeur=request.user,
                                                                 transfert_status__in=[
                                                                     Transfert.TransfertStatus.INITIALISE,

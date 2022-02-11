@@ -40,7 +40,7 @@
         <div>Code de couverture: {{ livre.livre_code }}</div>
     {% endif %}
     <div class="btn-group">
-        Date d'&eacutedition:<input type="text" name="dateEditionInput" id="dateEditionInput" placeholder="jj/mm/yyyy"
+        Date de publication:<input type="text" name="dateEditionInput" id="dateEditionInput" placeholder="jj/mm/yyyy"
                                     value='{{ livre.publication_date|date:"d M Y"|default_if_none:"" }}'>
         <span id="dateEditionClear" class="bi bi-x-circle"></span>
     </div>

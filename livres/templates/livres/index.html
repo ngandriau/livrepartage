@@ -35,7 +35,8 @@
                 <div class="search"><i class="fa fa-search"></i>
                     <div class="btn-group">
                         <input id="searchinput" name="searchinput" type="search" class="form-control" form="searchform"
-                               placeholder="chercher par titre, auteur, mots sujets...">
+                               placeholder="chercher par titre, auteur, mots sujets..."
+                               value="{{ livreSearchCriteria.searchinput }}">
                     </div>
                     <button id="searchbutton" class="btn btn-primary">
                         <span class="bi bi-search" aria-hidden="true"></span></button>
@@ -46,6 +47,7 @@
                     <div class="p-2 bd-highlight">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="true" id="jepossede_check"
+                                   {% if livreSearchCriteria.jepossede %}checked{% endif %}
                                    form="searchform"
                                    name="jepossede_check">
                             <label class="form-check-label" for="jepossede_check">
@@ -56,6 +58,7 @@
                     <div class="p-2 bd-highlight">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="true" id="jaicree_check"
+                                   {% if livreSearchCriteria.jaicree %}checked{% endif %}
                                    form="searchform"
                                    name="jaicree_check">
                             <label class="form-check-label" for="jaicree_check">
@@ -69,17 +72,17 @@
                 <div class="d-flex flex-column bd-highlight mb-2">
                     <div class="p-2 bd-highlight">
                         <input type="text" name="dateEditionInputAfter" id="dateEditionInputAfter" form="searchform"
-                               placeholder="jj/mm/yyyy" size="6">
+                               placeholder="jj/mm/yyyy" size="6" value="{{ livreSearchCriteria.dateEditionAfter }}">
                         publication
                         <input type="text" name="dateEditionInputBefore" id="dateEditionInputBefore" form="searchform"
-                               placeholder="jj/mm/yyyy" size="6">
+                               placeholder="jj/mm/yyyy" size="6" value="{{ livreSearchCriteria.dateEditionBefore }}">
                     </div>
-                     <div class="p-2 bd-highlight">
+                    <div class="p-2 bd-highlight">
                         <input type="text" name="dateCreationInputAfter" id="dateCreationInputAfter" form="searchform"
-                               placeholder="jj/mm/yyyy" size="6">
+                               placeholder="jj/mm/yyyy" size="6" value="{{ livreSearchCriteria.dateCreationAfter }}">
                         ajout
                         <input type="text" name="dateCreationInputBefore" id="dateCreationInputBefore" form="searchform"
-                               placeholder="jj/mm/yyyy" size="6">
+                               placeholder="jj/mm/yyyy" size="6" value="{{ livreSearchCriteria.dateCreationBefore }}">
                     </div>
                 </div>
             </div>
@@ -98,7 +101,7 @@
                 <th scope="col">Je poss&egrave;de</th>
                 <th scope="col">J'ai cr&eacute;&eacute;</th>
                 <th scope="col">Date ajout</th>
-                <th scope="col">Date Edition</th>
+                <th scope="col">Date Publication</th>
                 <th scope="col">Actions</th>
             </tr>
             {% for livre in latest_created_livre_list %}
@@ -180,6 +183,7 @@
     }
 
     {% endif %}
+
 
 
 

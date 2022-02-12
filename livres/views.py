@@ -316,25 +316,15 @@ def demande_transfert_livre(request, pk):
 
 @login_required()
 def list_demandes_transfert_mes_livres(request):
-    transferts_list = Transfert.objects.filter(livre__possesseur=request.user, transfert_status='INIT').order_by(
+    transferts_list = Transfert.objects.filter(livre__possesseur=request.user,
+                                               transfert_status__in=[Transfert.TransfertStatus.INITIALISE,
+                                                                 Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
         '-creation_date')
     context = {
         'action': 'listTransfertMesLivres',
         'transferts_list': transferts_list
     }
-    return render(request, 'livres/transferts_list.html', context)
-
-
-@login_required()
-def list_reception_livre_a_confirmer(request):
-    transferts_list = Transfert.objects.filter(demandeur=request.user,
-                                               transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR).order_by(
-        '-ok_demandeur_date')
-    context = {
-        'action': 'listReceptionLivreAConfirmer',
-        'transferts_list': transferts_list
-    }
-    return render(request, 'livres/transferts_list.html', context)
+    return render(request, 'livres/transferts_mes_livres_list.html', context)
 
 
 @login_required()
@@ -345,11 +335,10 @@ def list_mes_demandes_transfert_de_livres(request):
                                                    Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
         '-ok_demandeur_date')
     context = {
-        'action': 'listMesDemandesTransfert',
         'transferts_list': transferts_list
     }
 
-    return render(request, 'livres/transferts_list.html', context)
+    return render(request, 'livres/transferts_mes_demandes_list.html', context)
 
 
 @login_required()

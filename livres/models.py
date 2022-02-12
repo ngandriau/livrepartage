@@ -60,7 +60,7 @@ class Livre(models.Model):
 
 class Transfert(models.Model):
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE)
-    creation_date = models.DateField(auto_now=True, null=False)
+    creation_date = models.DateField(editable=False)
     demandeur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandeurtsf')
 
     # Date à laquelle le possesseur du livre envois un message au demandeur pour planifier échange du livre
@@ -74,10 +74,18 @@ class Transfert(models.Model):
     ok_demandeur_date = models.DateField(null=True, blank=True)
     demandeur_cancel_date = models.DateField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.creation_date = timezone.now()
+
+        return super(Transfert, self).save(*args, **kwargs)
+
     class TransfertStatus(models.TextChoices):
         INITIALISE = 'INIT', _('INITIALISER')
         # le possesseur indique que le livre a ete transmis (echange)
         OKPOSSESSEUR = 'OKPO', _('OKPOSSESSEUR')
+        # le demandeur indique qu'il a bien recu le livre, etat final
         OKDEMANDEUR = 'OKDE', _('OKDEMANDEUR')
         CANCEL = 'CANCEL', _('CANCEL')
 

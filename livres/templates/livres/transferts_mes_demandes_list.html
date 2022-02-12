@@ -1,0 +1,61 @@
+{% extends "livres/base.html" %}
+{% load static %}
+
+{% block title %}Transferts{% endblock title %}
+
+
+
+{% block header %}
+    {% include 'livres/common_header.html' %}
+{% endblock header %}
+
+{% block content %}
+     <legend><h3>Mes Demandes de transfert de livre</h3></legend>
+
+    {% if transferts_list %}
+        <table class="table table-striped table-hover">
+            <tr>
+{#                <th scope="col">Transfert ID (tmp)</th>#}
+                <th scope="col">Titre</th>
+{#                <th scope="col">Status</th>#}
+                <th scope="col">Ville</th>
+                <th scope="col">Date de creation</th>
+                {% if  action == 'listMesDemandesTransfert' %}
+                    <th scope="col">Date message possesseur</th>
+                {% endif %}
+                <th scope="col">Actions</th>
+            </tr>
+            {% for transfert in transferts_list %}
+                <tr>
+{#                <td>{{ transfert.id }}</td>#}
+                <td>{{ transfert.livre.titre_text }}</td>
+{#                <td>{{ transfert.transfert_status }}</td>#}
+                <td>{{ transfert.livre.possesseur.userprofile.ville }} </td>
+                <td>{{ transfert.creation_date }} </td>
+                <td>
+                    {% if  transfert.transfert_status ==  'OKPO' %}
+                         {{ transfert.livre.possesseur.first_name }} {{ transfert.livre.possesseur.last_name }} a indiqué vous avoir transmis le livre le {{ transfert.ok_possesseur_date }}
+                        <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
+                            <button class="btn btn-primary btn-default" type="submit">confirmer r&eacuteception du
+                                livre.
+                            </button>
+                            <br></form>
+
+                    {% elif  transfert.transfert_status == 'INIT'%}
+                        {% if  transfert.possesseur_envois_message_date %}
+                            {{ transfert.livre.possesseur.first_name }} {{ transfert.livre.possesseur.last_name }}  vous a envoyé un email pour planifier le transfert le  {{ transfert.possesseur_envois_message_date }} <br/>
+                        {% endif %}
+                        <form action="/livres/annultransfert/{{ transfert.id }}/" method="post">{% csrf_token %}
+                            <button class="btn btn-primary btn-default" type="submit">Annuler</button>
+                            <br></form>
+                    {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+        </table>
+    {% else %}
+        <p>Pas de transfert disponible.</p>
+    {% endif %}
+{% endblock content %}
+
+

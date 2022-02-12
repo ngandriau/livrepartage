@@ -12,7 +12,7 @@
                 </li>
                 <li><a href="{% url 'livres:listtransfertmeslivre' %}" class="nav-link px-2 text-white">demandes pour
                     mes livres ({{ demandes_transfert_mes_livres_list|length }})</a></li>
-                <li><a href="{% url 'livres:listreceptionaconfirmer' %}" class="nav-link px-2 text-white">réceptions de
+                <li><a href="{% url 'livres:listmesdemandestransfert' %}" class="nav-link px-2 text-white">réceptions de
                     livre &agrave; confirmer ({{ receptions_live_a_confirmer_list|length }}) </a></li>
                 <li><a href="{% url 'livres:listmesdemandestransfert' %}" class="nav-link px-2 text-white">mes demandes
                     de transfert ({{ mes_demandes_transfert_list|length }}) </a></li>

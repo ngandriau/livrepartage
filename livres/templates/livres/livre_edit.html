@@ -20,12 +20,21 @@
 <div class="form-group row">
     <label for="mode_partage" class="col-sm-2 col-form-label">Mode de partage du livre:</label>
     <div class="col-sm-10">
-        <select class="form-control" id="mode_partage" name="mode_partage">
-            <option value="DON" {% if action != 'creation' and livre.mode_partage == 'DON' %}selected {% endif %}>Don
-            </option>
-            <option value="PRET" {% if action != 'creation' and livre.mode_partage == 'PRET' %}selected {% endif %}>Prêt
-            </option>
-        </select>
+        {% if action == 'creation' or livre.createur == user %}
+            <select class="form-control" id="mode_partage" name="mode_partage">
+                <option value="DON" {% if action != 'creation' and livre.mode_partage == 'DON' %}selected {% endif %}>
+                    Don
+                </option>
+                <option value="PRET" {% if action != 'creation' and livre.mode_partage == 'PRET' %}selected {% endif %}>
+                    Prêt
+                </option>
+            </select>
+        {% else %}
+{#Seul le createur d'un livre peut modifier son mode de partage. TODO: a rafiner si le livre a été donné initialement...#}
+            <input type="text" readonly class="form-control-plaintext" id="codecouverture"
+                   value="{{ livre.mode_partage }}">
+        {% endif %}
+
     </div>
 </div>
 

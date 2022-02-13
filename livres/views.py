@@ -272,7 +272,9 @@ def submit_edit_livre(request):
 
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
-    livre.mode_partage = request.POST['mode_partage']
+    if(livre.createur == request.user and 'mode_partage' in request.POST.keys()):
+        print("UPDATE MODE PARTAGE")
+        livre.mode_partage = request.POST['mode_partage']
     livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     livre.url_externe_livre_text = request.POST['pageweb']
     livre.mots_sujets_txt = selectionnerTroisPremiersMots(request.POST['motssujets'])

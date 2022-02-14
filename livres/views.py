@@ -256,6 +256,9 @@ def submit_nouveau_livre(request):
 
     request.session['prevaction'] = 'newlivre'
     request.session['livre_id'] = livre.id
+
+    # // change criteres de recherche pour s'assurer que le nouveau livre apparait dans la liste
+    writeLivreSearchCriteriaFromSession(request.session, LivreSearchCriteria(jepossede=True, jaicree=True))
     return redirect(reverse('livres:index'))
 
 

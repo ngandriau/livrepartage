@@ -97,7 +97,7 @@ def index_view(request):
     queryset = Livre.objects.all()
     queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
             auteur_text__contains=livreSearchCriteria.searchinput) | Q(
-            mots_sujets_txt__contains=livreSearchCriteria.searchinput))
+            mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(livre_code__contains=livreSearchCriteria.searchinput))
 
     if livreSearchCriteria.jepossede:
         queryset = queryset.exclude(~Q(possesseur=request.user))

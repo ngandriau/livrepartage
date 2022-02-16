@@ -322,6 +322,22 @@ def list_demandes_transfert_mes_livres(request):
         'action': 'listTransfertMesLivres',
         'transferts_list': transferts_list
     }
+
+    if (request.session.__contains__('prevaction')):
+        if (request.session['prevaction'] == 'sendMessageDemandeur'):
+            transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
+            context[
+                'showSuccessMessage'] = f"Message envoyé à '{transfert.demandeur.email}' pour le livre '{transfert.livre.titre_text}'."
+            request.session.__delitem__('transfert_id')
+        elif (request.session['prevaction'] == 'livreAEteTransfere'):
+            transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
+            context[
+                'showSuccessMessage'] = f"'{transfert.demandeur.email}' a été désigné comme le nouveau possesseur du livre '{transfert.livre.titre_text}'. Il doit encore confirmer la réception."
+            request.session.__delitem__('transfert_id')
+
+        request.session.__delitem__('prevaction')
+
+
     return render(request, 'livres/transferts_mes_livres_list.html', context)
 
 
@@ -354,7 +370,11 @@ def livre_a_ete_transfere(request, pk):
     transfert.transfert_status = Transfert.TransfertStatus.OKPOSSESSEUR
     transfert.ok_possesseur_date = timezone.now()
     transfert.save()
-    return HttpResponseRedirect(reverse('livres:index'))
+
+    request.session['prevaction'] = 'livreAEteTransfere'
+    request.session['transfert_id'] = transfert.id
+
+    return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 
 
 @login_required()
@@ -397,7 +417,7 @@ def send_message_demandeur_to_prep_transfert(request, pk):
     if (transfert.livre.possesseur != request.user):
         print(
             f"!!!WARNING send_message_demandeur_to_prep_transfert demande par user[{request.user}] qui n'est pas le possesseur du livre[{transfert.livre}]")
-        return HttpResponseRedirect(reverse('livres:index'))
+        return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 
     transfert.possesseur_envois_message_date = timezone.now()
     transfert.save()
@@ -413,7 +433,7 @@ Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.
     request.session['prevaction'] = 'sendMessageDemandeur'
     request.session['transfert_id'] = transfert.id
 
-    return HttpResponseRedirect(reverse('livres:index'))
+    return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 
 
 def send_email(destinataire, sujet, message):

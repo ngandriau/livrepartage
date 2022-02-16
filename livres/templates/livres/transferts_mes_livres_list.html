@@ -42,7 +42,7 @@
                 <td> <!-- afficher les actions-->
                     {% if transfert.transfert_status == 'INIT' %}
                         {% if transfert.possesseur_envois_message_date %}
-                            Message envoy&eacute le: {{ transfert.possesseur_envois_message_date }} à "{{ transfert.livre.possesseur.email }}"
+                            Message envoy&eacute le: {{ transfert.possesseur_envois_message_date }} à "{{ transfert.demandeur.email }}"
                         {% else %}
                             <form action="/livres/sendmessagetoinittransfert/{{ transfert.id }}/"
                                   method="post">{% csrf_token %}
@@ -60,7 +60,7 @@
                     {% endif %}
                     {% if transfert.transfert_status == 'OKPO' %}
                         Livre transféré le {{ transfert.ok_possesseur_date }} mais pas encore confirmé!
-                        <br/>Contact: "{{ transfert.livre.possesseur.email }}"
+                        <br/>Contact: "{{ transfert.demandeur.email }}"
                     {% endif %}
                 </td>
             {% endfor %}

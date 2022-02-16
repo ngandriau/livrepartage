@@ -44,6 +44,7 @@
                 <td>
                     {% if  transfert.transfert_status ==  'OKPO' %}
                          {{ transfert.livre.possesseur.first_name }} {{ transfert.livre.possesseur.last_name }} a indiqué vous avoir transmis le livre le {{ transfert.ok_possesseur_date }}
+                        <br/>Contact: {{ transfert.livre.possesseur.email }}
                         <form action="/livres/livrerecu/{{ transfert.id }}/" method="post">{% csrf_token %}
                             <button class="btn btn-primary btn-default" type="submit">confirmer r&eacuteception du
                                 livre.

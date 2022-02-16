@@ -357,6 +357,11 @@ def list_mes_demandes_transfert_de_livres(request):
             context[
                 'showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
             request.session.__delitem__('livre_id')
+        elif (request.session['prevaction'] == 'livreAEteRecu'):
+            context[
+                'showSuccessMessage'] = f"Vous avez confirmé avoir reçule livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}'."
+            request.session.__delitem__('livre_id')
+
 
         request.session.__delitem__('prevaction')
 
@@ -388,7 +393,11 @@ def livre_a_ete_recu(request, pk):
     # TODO: dans quel etat on met le livre a ce moment? Certainement bloque en mode lecture
     transfert.save()
     transfert.livre.save()
-    return HttpResponseRedirect(reverse('livres:index'))
+
+    request.session['prevaction'] = 'livreAEteRecu'
+    request.session['livre_id'] = transfert.livre.id
+
+    return HttpResponseRedirect(reverse('livres:listmesdemandestransfert'))
 
 
 @login_required()

@@ -93,7 +93,7 @@ def index_view(request):
         else:
             livreSearchCriteria.dateCreationBefore = ''
 
-    print(f"  livreSearchCriteria.searchinput: {livreSearchCriteria.searchinput}")
+    # print(f"  livreSearchCriteria.searchinput: {livreSearchCriteria.searchinput}")
     queryset = Livre.objects.all()
     queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
             auteur_text__contains=livreSearchCriteria.searchinput) | Q(
@@ -191,10 +191,6 @@ def index_view(request):
             context[
                 'showSuccessMessage'] = f"Votre demande de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
             request.session.__delitem__('livre_id')
-        elif (request.session['prevaction'] == 'annulationTransfert'):
-            context[
-                'showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
-            request.session.__delitem__('livre_id')
         elif (request.session['prevaction'] == 'sendMessageDemandeur'):
             transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
             context[
@@ -203,9 +199,6 @@ def index_view(request):
 
         request.session.__delitem__('prevaction')
 
-
-    else:
-        print("No entry 'prevaction' in session")
     return render(request, 'livres/index.html', context)
 
 
@@ -343,6 +336,14 @@ def list_mes_demandes_transfert_de_livres(request):
         'transferts_list': transferts_list
     }
 
+    if (request.session.__contains__('prevaction')):
+        if (request.session['prevaction'] == 'annulationTransfert'):
+            context[
+                'showSuccessMessage'] = f"Votre annulation de transfert pour le livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}' a bien été enregistrée."
+            request.session.__delitem__('livre_id')
+
+        request.session.__delitem__('prevaction')
+
     return render(request, 'livres/transferts_mes_demandes_list.html', context)
 
 
@@ -377,7 +378,7 @@ def annul_demande_transfert(request, pk):
     if (transfert.demandeur != request.user):
         print(
             f"!!!WARNING annulation transfert demande par user[{request.user}] qui n'est pas le demandeur[{transfert.demandeur}]")
-        return HttpResponseRedirect(reverse('livres:index'))
+        return HttpResponseRedirect(reverse('livres:listmesdemandestransfert'))
 
     transfert.transfert_status = Transfert.TransfertStatus.CANCEL
     transfert.demandeur_cancel_date = timezone.now()
@@ -386,7 +387,7 @@ def annul_demande_transfert(request, pk):
     request.session['prevaction'] = 'annulationTransfert'
     request.session['livre_id'] = transfert.livre.id
 
-    return HttpResponseRedirect(reverse('livres:index'))
+    return HttpResponseRedirect(reverse('livres:listmesdemandestransfert'))
 
 
 @login_required()

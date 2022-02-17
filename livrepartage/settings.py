@@ -18,7 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # DECOUPLE for security and various env setup
 SECRET_KEY = config('SECRET_KEY')
+# setting DEBUG from '.env' file does not seem to work. DEBUG is always True :-( only fixed I found is to set it directly here
+# DEBUG = False
 DEBUG = config('DEBUG')
+# ALLOWED_HOSTS is necessary if DEBUG=False or if accessed remotely
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -57,8 +62,6 @@ DATABASES = {
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -95,6 +98,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'livres.processor.my_context',
             ],
         },
     },

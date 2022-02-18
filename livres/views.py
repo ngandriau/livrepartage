@@ -1,3 +1,4 @@
+import distutils
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -447,7 +448,10 @@ Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.
 
 def send_email(destinataire, sujet, message):
     print(f"send email a: {destinataire} - {sujet} - {message}")
-    print(f"  gmail config: {config('GMAIL_USER')} - {config('GMAIL_PASS')}")
+    if not distutils.util.strtobool(config('EMAIL_ACTIF')):
+        print('  !!!Email pas actif. ')
+        return
+
     port = 465  # For SSL
     # Create a secure SSL context
     context = ssl.create_default_context()

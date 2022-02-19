@@ -324,6 +324,10 @@ def list_demandes_transfert_mes_livres(request):
         'transferts_list': transferts_list
     }
 
+    if(request.session.__contains__('error')):
+        context['showErrorMessage'] = request.session['error']
+        request.session.__delitem__('error')
+
     if (request.session.__contains__('prevaction')):
         if (request.session['prevaction'] == 'sendMessageDemandeur'):
             transfert = get_object_or_404(Transfert, pk=request.session['transfert_id'])
@@ -373,12 +377,25 @@ def list_mes_demandes_transfert_de_livres(request):
 def livre_a_ete_transfere(request, pk):
     print(f"livre_a_ete_transfere {pk}")
     transfert = get_object_or_404(Transfert, pk=pk)
-    transfert.transfert_status = Transfert.TransfertStatus.OKPOSSESSEUR
-    transfert.ok_possesseur_date = timezone.now()
-    transfert.save()
 
-    request.session['prevaction'] = 'livreAEteTransfere'
-    request.session['transfert_id'] = transfert.id
+    # vérifions si un autre transfert n'existe pas sur ce livre avec un transfert déjà fait
+    autreTransferts = Transfert.objects.filter(
+        livre=transfert.livre,
+        transfert_status__in=[Transfert.TransfertStatus.OKPOSSESSEUR]
+    ).exclude(id=transfert.id)
+    print(f"  autreTransferts pour meme livre: {autreTransferts}")
+
+    if len(autreTransferts) > 0:
+        print(f"  !!!Un autre transfert existe pour ce livre!!! ERROR on ne fait rien")
+        request.session['error'] = f"Le livre '{transfert.livre.titre_text}' a déjà été transféré à un autre demandeur. L'opération a été annulée!"
+    else:
+        transfert.transfert_status = Transfert.TransfertStatus.OKPOSSESSEUR
+        transfert.ok_possesseur_date = timezone.now()
+        transfert.save()
+
+        request.session['prevaction'] = 'livreAEteTransfere'
+        request.session['transfert_id'] = transfert.id
+
 
     return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 

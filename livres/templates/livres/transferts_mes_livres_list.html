@@ -10,10 +10,19 @@
 {% endblock header %}
 
 {% block content %}
-       {% if showSuccessMessage %}
+    {% if showSuccessMessage %}
         <div class="container">
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <strong>Succ&egrave;s!</strong> {{ showSuccessMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if showErrorMessage %}
+        <div class="container">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Erreur!</strong> {{ showErrorMessage }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
@@ -51,6 +60,8 @@
                                 </button>
                                 <br></form>
                         {% endif %}
+                        {# permettre au possesseur d'indiquer qu'il a transmis le livre au demandeur #}
+                        {# TODO: n'afficher que si le livre n'est pas déjà transmis a un autre demandeur en attente de confirmation OU ON LES CACHES TOUT SIMPLEMENT #}
                         <form action="/livres/livretransmis/{{ transfert.id }}/" method="post">{% csrf_token %}
                             <button class="btn btn-primary btn-default" type="submit">Le livre a &eacutet&eacute
                                 transf&eacuter&eacute

@@ -14,10 +14,12 @@ from django.utils import timezone
 from django.views import generic
 
 from .models import Livre, Transfert
+from .queries import findTransfertsPourLivreTransfereNonConfirme
 
 
 class LivreSearchCriteria:
-    def __init__(self, searchinput='', jaicree=False, jepossede=False, dateEditionAfter='', dateEditionBefore='', dateCreationAfter='', dateCreationBefore=''):
+    def __init__(self, searchinput='', jaicree=False, jepossede=False, dateEditionAfter='', dateEditionBefore='',
+                 dateCreationAfter='', dateCreationBefore=''):
         self.searchinput = searchinput
         self.jaicree = jaicree
         self.jepossede = jepossede
@@ -25,6 +27,7 @@ class LivreSearchCriteria:
         self.dateEditionBefore = dateEditionBefore
         self.dateCreationAfter = dateCreationAfter
         self.dateCreationBefore = dateCreationBefore
+
 
 def loadLivreSearchCriteriaFromSession(session):
     livreSearchCriteria = LivreSearchCriteria()
@@ -40,6 +43,7 @@ def loadLivreSearchCriteriaFromSession(session):
 
     return livreSearchCriteria
 
+
 def writeLivreSearchCriteriaFromSession(session, criteria):
     session['livreSearchInput'] = criteria.searchinput
     session['jaicree'] = criteria.jaicree
@@ -49,6 +53,7 @@ def writeLivreSearchCriteriaFromSession(session, criteria):
     session['dateCreationAfter'] = criteria.dateCreationAfter
     session['dateCreationBefore'] = criteria.dateCreationBefore
 
+
 @login_required()
 def index_view(request):
     print(f"index_view(POST: {request.POST})")
@@ -56,9 +61,8 @@ def index_view(request):
     # recuperer les criteres de recherche dans la session si existe
     livreSearchCriteria = loadLivreSearchCriteriaFromSession(request.session)
 
-
     # si l'action est vraiment une recherche de livre avec un formulaire, mettre a jours nos criteres
-    if(request.POST.get('cherchelivre')):
+    if (request.POST.get('cherchelivre')):
         if request.POST.get('searchinput'):
             livreSearchCriteria.searchinput = request.POST['searchinput']
         else:
@@ -97,8 +101,9 @@ def index_view(request):
     # print(f"  livreSearchCriteria.searchinput: {livreSearchCriteria.searchinput}")
     queryset = Livre.objects.all()
     queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
-            auteur_text__contains=livreSearchCriteria.searchinput) | Q(
-            mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(livre_code__contains=livreSearchCriteria.searchinput))
+        auteur_text__contains=livreSearchCriteria.searchinput) | Q(
+        mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(
+        livre_code__contains=livreSearchCriteria.searchinput))
 
     if livreSearchCriteria.jepossede:
         queryset = queryset.exclude(~Q(possesseur=request.user))
@@ -110,12 +115,13 @@ def index_view(request):
     else:
         queryset = queryset.exclude(Q(createur=request.user))
 
-    if(livreSearchCriteria.dateEditionAfter):
+    if (livreSearchCriteria.dateEditionAfter):
         try:
             d = dateparser.parse(livreSearchCriteria.dateEditionAfter, languages=['fr'])
             queryset = queryset.exclude(publication_date__lte=d)
         except:
-            print(f"index_view() - ex while parsing dateEditionAfter with value:[{livreSearchCriteria.dateEditionAfter}]")
+            print(
+                f"index_view() - ex while parsing dateEditionAfter with value:[{livreSearchCriteria.dateEditionAfter}]")
             livreSearchCriteria.dateEditionAfter = f"INVALIDE: {livreSearchCriteria.dateEditionAfter}"
 
     if (livreSearchCriteria.dateEditionBefore):
@@ -144,8 +150,6 @@ def index_view(request):
             print(
                 f"index_view() - ex while parsing dateCreationBefore with value:[{livreSearchCriteria.dateCreationBefore}]")
             livreSearchCriteria.dateCreationBefore = f"INVALIDE: {livreSearchCriteria.dateCreationBefore}"
-
-
 
     latest_created_livre_list = queryset.order_by('-creation_date')[:25]
 
@@ -269,7 +273,7 @@ def submit_edit_livre(request):
 
     livre.titre_text = request.POST['titre']
     livre.auteur_text = request.POST['auteur']
-    if(livre.createur == request.user and 'mode_partage' in request.POST.keys()):
+    if (livre.createur == request.user and 'mode_partage' in request.POST.keys()):
         print("UPDATE MODE PARTAGE")
         livre.mode_partage = request.POST['mode_partage']
     livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
@@ -312,19 +316,40 @@ def demande_transfert_livre(request, pk):
 
     return HttpResponseRedirect(reverse('livres:index'))
 
+def transfertListContainsLivre(transferts_list, livre):
+    for tsf in transferts_list:
+        if tsf.livre == livre:
+            return True
+
+    return False
 
 @login_required()
 def list_demandes_transfert_mes_livres(request):
-    transferts_list = Transfert.objects.filter(livre__possesseur=request.user,
-                                               transfert_status__in=[Transfert.TransfertStatus.INITIALISE,
-                                                                 Transfert.TransfertStatus.OKPOSSESSEUR]).order_by(
+    # les transferts pour le meme livre sont filtres. Si un des transferts a le livre dans les mains du demandeur
+    # les autres transferts sont caches pour eviter de donner le livre 2 fois
+    transfertsEchangeFait_list = Transfert.objects.filter(livre__possesseur=request.user,
+                                                          transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR).order_by(
         '-creation_date')
+    transfertsJustInitialise_list = Transfert.objects.filter(livre__possesseur=request.user,
+                                                             transfert_status=Transfert.TransfertStatus.INITIALISE)
+    result_list = list(transfertsEchangeFait_list)
+    for tsf in transfertsJustInitialise_list:
+        if not transfertListContainsLivre(transfertsEchangeFait_list, tsf.livre):
+            result_list.append(tsf)
+
+    # on enleve aussi les livres qui sont en mode 'PRET' et que nous n'avons pas cree
+    result2_list = []
+    for tsf in result_list:
+        if(tsf.livre.mode_partage == Livre.ModeDePartage.DON or tsf.livre.createur == request.user):
+            result2_list.append(tsf)
+
+
     context = {
         'action': 'listTransfertMesLivres',
-        'transferts_list': transferts_list
+        'transferts_list': result2_list
     }
 
-    if(request.session.__contains__('error')):
+    if (request.session.__contains__('error')):
         context['showErrorMessage'] = request.session['error']
         request.session.__delitem__('error')
 
@@ -341,7 +366,6 @@ def list_demandes_transfert_mes_livres(request):
             request.session.__delitem__('transfert_id')
 
         request.session.__delitem__('prevaction')
-
 
     return render(request, 'livres/transferts_mes_livres_list.html', context)
 
@@ -367,7 +391,6 @@ def list_mes_demandes_transfert_de_livres(request):
                 'showSuccessMessage'] = f"Vous avez confirmé avoir reçule livre '{get_object_or_404(Livre, pk=request.session['livre_id']).titre_text}'."
             request.session.__delitem__('livre_id')
 
-
         request.session.__delitem__('prevaction')
 
     return render(request, 'livres/transferts_mes_demandes_list.html', context)
@@ -378,16 +401,11 @@ def livre_a_ete_transfere(request, pk):
     print(f"livre_a_ete_transfere {pk}")
     transfert = get_object_or_404(Transfert, pk=pk)
 
-    # vérifions si un autre transfert n'existe pas sur ce livre avec un transfert déjà fait
-    autreTransferts = Transfert.objects.filter(
-        livre=transfert.livre,
-        transfert_status__in=[Transfert.TransfertStatus.OKPOSSESSEUR]
-    ).exclude(id=transfert.id)
-    print(f"  autreTransferts pour meme livre: {autreTransferts}")
+    autreTransferts = findTransfertsPourLivreTransfereNonConfirme(transfert)
 
     if len(autreTransferts) > 0:
-        print(f"  !!!Un autre transfert existe pour ce livre!!! ERROR on ne fait rien")
-        request.session['error'] = f"Le livre '{transfert.livre.titre_text}' a déjà été transféré à un autre demandeur. L'opération a été annulée!"
+        request.session[
+            'error'] = f"Le livre '{transfert.livre.titre_text}' a déjà été transféré à un autre demandeur. L'opération a été annulée!"
     else:
         transfert.transfert_status = Transfert.TransfertStatus.OKPOSSESSEUR
         transfert.ok_possesseur_date = timezone.now()
@@ -395,7 +413,6 @@ def livre_a_ete_transfere(request, pk):
 
         request.session['prevaction'] = 'livreAEteTransfere'
         request.session['transfert_id'] = transfert.id
-
 
     return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 

@@ -128,8 +128,7 @@ class Retour(models.Model):
 
     class RetourStatus(models.TextChoices):
         ACTIF = 'ACTIF', _('ACTIF')
-        ACHEVE = 'ACHEVE'
-        _('ACHEVE')
+        ACHEVE = 'ACHEVE', _('ACHEVE')
         CANCEL = 'CANCEL', _('CANCEL')
 
     retour_status = models.CharField(

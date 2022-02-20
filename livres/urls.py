@@ -21,5 +21,8 @@ urlpatterns = [
     path('annultransfert/<int:pk>/', views.annul_demande_transfert, name='annultransfert'),
     path('sendmessagetoinittransfert/<int:pk>/', views.send_message_demandeur_to_prep_transfert, name='sendmessagetoinittransfert'),
     path('retourparemprunteur/<int:pk>/', views.livre_a_ete_retourne_par_emprunteur, name='retourparemprunteur'),
+    path('retourconfirmeparproprietaire/<int:pk>/', views.livre_retour_confirme_par_proprietaire, name='retourconfirmeparproprietaire'),
+    path('sendmessagepourrecupererlivre/<int:pk>/', views.livre_retour_proprietaire_envoi_msg_rappel, name='sendmessagepourrecupererlivre'),
+    path('sendmessagepourpreparerretourauproprio/<int:pk>/', views.livre_retour_emprunteur_envoi_msg_preparer_retour, name='sendmessagepourpreparerretourauproprio'),
 
 ]

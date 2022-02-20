@@ -376,16 +376,13 @@ def list_livres_que_je_dois_retourner(request):
     livres_list = Livre.objects.filter(possesseur=request.user, mode_partage=Livre.ModeDePartage.PRET).exclude(
         createur=request.user).order_by('-possede_depuis_date')
 
-    print(f"  livre que je possede et dois retourner: {livres_list}")
-    print(f"  livre que je possede et dois retourner: {livres_list}")
-
     liste_data_view = []
     for livre in livres_list:
         liste_data_view.append(LivreEtRetourOpt(
             livre=livre,
-            retour=Retour.objects.filter(livre=livre, emprunteur=request.user, retour_status=Retour.RetourStatus.ACTIF).first())
+            retour=Retour.objects.filter(livre=livre, emprunteur=request.user,
+                                         retour_status=Retour.RetourStatus.ACTIF).first())
         )
-    print(f"  liste_data_view: {liste_data_view}")
 
     context = {
         'livre_et_retour_list': liste_data_view
@@ -399,8 +396,16 @@ def list_livres_que_je_veux_recuperer(request):
     livres_list = Livre.objects.filter(createur=request.user, mode_partage=Livre.ModeDePartage.PRET).exclude(
         possesseur=request.user).order_by('-possede_depuis_date')
 
+    liste_data_view = []
+    for livre in livres_list:
+        liste_data_view.append(LivreEtRetourOpt(
+            livre=livre,
+            retour=Retour.objects.filter(livre=livre, proprietaire=request.user,
+                                         retour_status=Retour.RetourStatus.ACTIF).first())
+        )
+
     context = {
-        'livres_list': livres_list
+        'livre_et_retour_list': liste_data_view
     }
 
     return render(request, 'livres/livres_que_je_veux_recuperer_list.html', context)
@@ -434,7 +439,6 @@ def list_mes_demandes_transfert_de_livres(request):
 
 @login_required()
 def livre_a_ete_retourne_par_emprunteur(request, pk):
-    #     uri incomming: retourparemprunteur
     print(f"livre_a_ete_retourne_par_emprunteur(livreid:{pk})")
     livre = get_object_or_404(Livre, pk=pk)
 
@@ -442,17 +446,95 @@ def livre_a_ete_retourne_par_emprunteur(request, pk):
     retour = None
     try:
         retour = Retour.objects.get(livre=livre, retour_status=Retour.RetourStatus.ACTIF)
-        print(f"  retour found: {retour}")
     except Retour.DoesNotExist:
         retour = Retour(livre=livre, emprunteur=request.user, proprietaire=livre.createur,
                         retour_status=Retour.RetourStatus.ACTIF, emprunteur_retourne_livre_date=timezone.now())
 
+    retour.emprunteur_retourne_livre_date = timezone.now()
     retour.save()
 
     request.session['prevaction'] = 'retourparemprunteur'
     request.session['retour_id'] = retour.id
 
+    send_email(retour.proprietaire.email, "L'emprunteur d'un de vos livre cherche à communiquer avec vous.",
+               f"{retour.emprunteur.first_name} {retour.emprunteur.last_name} indique qu'il vous a restitué le livre '{livre.titre_text}'. <br/> Veuillez confirmer le retour dans le système ou le contacter pour clarifier la situation à l'adresse: {retour.emprunteur.email}. Merci.")
+
     return HttpResponseRedirect(reverse('livres:listlivrequejedoisretourner'))
+
+
+@login_required()
+def livre_retour_confirme_par_proprietaire(request, pk):
+    print(f"livre_retour_confirme_par_proprietaire(livreid:{pk})")
+    livre = get_object_or_404(Livre, pk=pk)
+
+    #     check si un retour existe deja sur ce livre
+    retour = Retour.objects.filter(livre=livre, retour_status=Retour.RetourStatus.ACTIF,
+                                   proprietaire=request.user).first()
+    if not retour:
+        print(
+            f"livre_retour_confirme_par_proprietaire(livre_id:{pk}) - le retour devrait deja exister, mais pas trouver. Creer pour historique seulement")
+        retour = Retour(livre=livre, proprietaire=request.user, emprunteur=livre.possesseur,
+                        emprunteur_retourne_livre_date=timezone.now()
+                        )
+
+    retour.retour_status = Retour.RetourStatus.ACHEVE
+    retour.proprietaire_a_recupere_son_livre_date = timezone.now()
+    retour.save()
+
+    livre.possesseur = request.user
+    livre.possede_depuis_date = timezone.now()
+    livre.save()
+
+    request.session['prevaction'] = 'retourconfirmeparproprietaire'
+    request.session['retour_id'] = retour.id
+
+    return HttpResponseRedirect(reverse('livres:listlivrequejeveuxrecuperer'))
+
+
+@login_required()
+def livre_retour_emprunteur_envoi_msg_preparer_retour(request, pk):
+    print(f"livre_retour_emprunteur_envoi_msg_preparer_retour(livreid:{pk})")
+    livre = get_object_or_404(Livre, pk=pk)
+
+    #     check si un retour existe deja sur ce livre
+    retour = Retour.objects.filter(livre=livre, retour_status=Retour.RetourStatus.ACTIF,
+                                   emprunteur=request.user).first()
+    if not retour:
+        print("   PAS  DE RETOUR, on en créé un")
+        retour = Retour(livre=livre, emprunteur=request.user, proprietaire=livre.createur,
+                        retour_status=Retour.RetourStatus.ACTIF)
+
+    retour.emprunteur_message_init_retour_date = timezone.now()
+    retour.save()
+
+    send_email(retour.proprietaire.email, "L'emprunteur d'un de vos livre cherche à communiquer avec vous.",
+               f"{retour.emprunteur.first_name} {retour.emprunteur.last_name} vous informe qu'il est prêt à vous retourner votre livre '{livre.titre_text}'. <br/> Merci de prendre contact avec lui a l'adresse suivante: {retour.emprunteur.email}")
+
+    return HttpResponseRedirect(reverse('livres:listlivrequejedoisretourner'))
+
+
+@login_required()
+def livre_retour_proprietaire_envoi_msg_rappel(request, pk):
+    print(f"livre_retour_proprietaire_envoi_msg_rappel(livreid:{pk})")
+    livre = get_object_or_404(Livre, pk=pk)
+
+    #     check si un retour existe deja sur ce livre
+    retour = Retour.objects.filter(livre=livre, retour_status=Retour.RetourStatus.ACTIF,
+                                   proprietaire=request.user).first()
+    if not retour:
+        retour = Retour(livre=livre, proprietaire=request.user, emprunteur=livre.possesseur,
+                        retour_status=Retour.RetourStatus.ACTIF)
+
+    retour.proprietaire_message_reclame_retour_date = timezone.now()
+    retour.save()
+
+    send_email(retour.emprunteur.email, "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous.",
+               f"{livre.createur.first_name} {livre.createur.last_name} vous informe qu'il aimerait récupérer son livre '{livre.titre_text}' que vous avez depuis le {livre.possede_depuis_date}. <br/> Merci de prendre contact avec lui a l'adresse suivante: {livre.createur.email}")
+
+    request.session['prevaction'] = 'retourproprietaireenvoiemessage'
+    request.session['retour_id'] = retour.id
+
+    return HttpResponseRedirect(reverse('livres:listlivrequejeveuxrecuperer'))
 
 
 @login_required()
@@ -533,7 +615,7 @@ def send_message_demandeur_to_prep_transfert(request, pk):
     transfert.possesseur_envois_message_date = timezone.now()
     transfert.save()
 
-    sujet = "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous :-)"
+    sujet = "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous."
 
     message = f"""\
 Le possesseur du livre '{transfert.livre.titre_text}', pour lequel vous avez fait une demande de transfert le {transfert.creation_date} a communiqué avec vous. 

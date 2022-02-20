@@ -35,7 +35,7 @@
             {% for livreEtRetour in livre_et_retour_list %}
                 <tr>
                 <td>{{ livreEtRetour.livre.titre_text }}</td>
-                <td>{{ livreEtRetour.livre.createur.first_name }} {{ livre.createur.last_name }}  </td>
+                <td>{{ livreEtRetour.livre.createur.first_name }} {{ livreEtRetour.livre.createur.last_name }}  </td>
                 <td>{{ livreEtRetour.livre.createur.email }} </td>
                 <td>{{ livreEtRetour.livre.createur.userprofile.ville }} </td>
                 <td>{{ livreEtRetour.livre.possede_depuis_date }} </td>
@@ -43,7 +43,15 @@
                 {% if  livreEtRetour.retour.emprunteur_retourne_livre_date%}
                     Livre retourné le {{ livreEtRetour.retour.emprunteur_retourne_livre_date }}- en attente de confirmation par le propriétaire
                 {%  else %}
-{#                A finaliser, car si demande de retour faite, indiquer la date et cacher le bouton#}
+                    {% if livreEtRetour.retour.proprietaire_message_reclame_retour_date %}
+                        Demande de préparation du retour reçu le {{ livreEtRetour.retour.proprietaire_message_reclame_retour_date }} <br/>
+                    {% elif livreEtRetour.retour.emprunteur_message_init_retour_date %}
+                        Message envoyé le {{ livreEtRetour.retour.emprunteur_message_init_retour_date }} pour préparer retour.
+                    {% else %}
+                        <form action="/livres/sendmessagepourpreparerretourauproprio/{{ livreEtRetour.livre.id }}/" method="post">{% csrf_token %}
+                            <button class="btn btn-primary btn-default" type="submit">Envoyer message pour préparer retour</button>
+                        </form>
+                    {% endif %}
                     <form action="/livres/retourparemprunteur/{{ livreEtRetour.livre.id }}/" method="post">{% csrf_token %}
                         <button class="btn btn-primary btn-default" type="submit">Livre retourné
                         </button>

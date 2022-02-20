@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
 
-from .models import Livre, Transfert
+from .models import Livre, Transfert, Retour
 from .queries import findTransfertsPourLivreTransfereNonConfirme
 
 
@@ -316,12 +316,14 @@ def demande_transfert_livre(request, pk):
 
     return HttpResponseRedirect(reverse('livres:index'))
 
+
 def transfertListContainsLivre(transferts_list, livre):
     for tsf in transferts_list:
         if tsf.livre == livre:
             return True
 
     return False
+
 
 @login_required()
 def list_demandes_transfert_mes_livres(request):
@@ -340,9 +342,8 @@ def list_demandes_transfert_mes_livres(request):
     # on enleve aussi les livres qui sont en mode 'PRET' et que nous n'avons pas cree
     result2_list = []
     for tsf in result_list:
-        if(tsf.livre.mode_partage == Livre.ModeDePartage.DON or tsf.livre.createur == request.user):
+        if (tsf.livre.mode_partage == Livre.ModeDePartage.DON or tsf.livre.createur == request.user):
             result2_list.append(tsf)
-
 
     context = {
         'action': 'listTransfertMesLivres',
@@ -369,16 +370,29 @@ def list_demandes_transfert_mes_livres(request):
 
     return render(request, 'livres/transferts_mes_livres_list.html', context)
 
+
 @login_required()
 def list_livres_que_je_dois_retourner(request):
     livres_list = Livre.objects.filter(possesseur=request.user, mode_partage=Livre.ModeDePartage.PRET).exclude(
         createur=request.user).order_by('-possede_depuis_date')
 
+    print(f"  livre que je possede et dois retourner: {livres_list}")
+    print(f"  livre que je possede et dois retourner: {livres_list}")
+
+    liste_data_view = []
+    for livre in livres_list:
+        liste_data_view.append(LivreEtRetourOpt(
+            livre=livre,
+            retour=Retour.objects.filter(livre=livre, emprunteur=request.user, retour_status=Retour.RetourStatus.ACTIF).first())
+        )
+    print(f"  liste_data_view: {liste_data_view}")
+
     context = {
-        'livres_list': livres_list
+        'livre_et_retour_list': liste_data_view
     }
 
     return render(request, 'livres/livres_que_je_dois_retourner_list.html', context)
+
 
 @login_required()
 def list_livres_que_je_veux_recuperer(request):
@@ -390,6 +404,7 @@ def list_livres_que_je_veux_recuperer(request):
     }
 
     return render(request, 'livres/livres_que_je_veux_recuperer_list.html', context)
+
 
 @login_required()
 def list_mes_demandes_transfert_de_livres(request):
@@ -415,6 +430,29 @@ def list_mes_demandes_transfert_de_livres(request):
         request.session.__delitem__('prevaction')
 
     return render(request, 'livres/transferts_mes_demandes_list.html', context)
+
+
+@login_required()
+def livre_a_ete_retourne_par_emprunteur(request, pk):
+    #     uri incomming: retourparemprunteur
+    print(f"livre_a_ete_retourne_par_emprunteur(livreid:{pk})")
+    livre = get_object_or_404(Livre, pk=pk)
+
+    #     check si un retour existe deja sur ce livre
+    retour = None
+    try:
+        retour = Retour.objects.get(livre=livre, retour_status=Retour.RetourStatus.ACTIF)
+        print(f"  retour found: {retour}")
+    except Retour.DoesNotExist:
+        retour = Retour(livre=livre, emprunteur=request.user, proprietaire=livre.createur,
+                        retour_status=Retour.RetourStatus.ACTIF, emprunteur_retourne_livre_date=timezone.now())
+
+    retour.save()
+
+    request.session['prevaction'] = 'retourparemprunteur'
+    request.session['retour_id'] = retour.id
+
+    return HttpResponseRedirect(reverse('livres:listlivrequejedoisretourner'))
 
 
 @login_required()
@@ -529,3 +567,9 @@ def send_email(destinataire, sujet, message):
         msg['To'] = destinataire
 
         server.send_message(msg)
+
+
+class LivreEtRetourOpt:
+    def __init__(self, livre, retour):
+        self.livre = livre
+        self.retour = retour

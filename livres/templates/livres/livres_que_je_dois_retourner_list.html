@@ -21,7 +21,7 @@
 
      <legend><h3>Livres que je dois retourner</h3></legend>
 
-    {% if livres_list %}
+    {% if livre_et_retour_list %}
         <table class="table table-striped table-hover">
             <tr>
 {#                <th scope="col">Transfert ID (tmp)</th>#}
@@ -32,19 +32,23 @@
                 <th scope="col">Possède depuis</th>
                 <th scope="col">Actions</th>
             </tr>
-            {% for livre in livres_list %}
+            {% for livreEtRetour in livre_et_retour_list %}
                 <tr>
-                <td>{{ livre.titre_text }}</td>
-                <td>{{ livre.createur.first_name }} {{ livre.createur.last_name }}  </td>
-                <td>{{ livre.createur.email }} </td>
-                <td>{{ livre.createur.userprofile.ville }} </td>
-                <td>{{ livre.possede_depuis_date }} </td>
+                <td>{{ livreEtRetour.livre.titre_text }}</td>
+                <td>{{ livreEtRetour.livre.createur.first_name }} {{ livre.createur.last_name }}  </td>
+                <td>{{ livreEtRetour.livre.createur.email }} </td>
+                <td>{{ livreEtRetour.livre.createur.userprofile.ville }} </td>
+                <td>{{ livreEtRetour.livre.possede_depuis_date }} </td>
                 <td>
+                {% if  livreEtRetour.retour.emprunteur_retourne_livre_date%}
+                    Livre retourné le {{ livreEtRetour.retour.emprunteur_retourne_livre_date }}- en attente de confirmation par le propriétaire
+                {%  else %}
 {#                A finaliser, car si demande de retour faite, indiquer la date et cacher le bouton#}
-                    <form action="#" method="post">{% csrf_token %}
+                    <form action="/livres/retourparemprunteur/{{ livreEtRetour.livre.id }}/" method="post">{% csrf_token %}
                         <button class="btn btn-primary btn-default" type="submit">Livre retourné
                         </button>
                     </form>
+                {% endif %}
                 </td>
             {% endfor %}
             </tr>

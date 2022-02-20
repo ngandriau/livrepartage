@@ -16,7 +16,7 @@ class Livre(models.Model):
     livre_code = models.CharField(max_length=20, blank=True, default='')
 
     # usage anticipé, permettre de saisir 3 mots pour décrire le livre en plus du titre qui seront dans la recherche
-    mots_sujets_txt = models.CharField(max_length=20, blank=True, default='')
+    mots_sujets_txt = models.CharField(max_length=200, blank=True, default='')
     titre_text = models.CharField(max_length=200)
     auteur_text = models.CharField(max_length=200, blank=True, default='')
     publication_date = models.DateField('date publication', null=True, blank=True)
@@ -100,3 +100,50 @@ class Transfert(models.Model):
     def __str__(self):
         possesseur = self.possesseur_final if self.possesseur_final else self.livre.possesseur
         return f"{self.livre.titre_text} - demandé le {self.creation_date} par {self.demandeur.first_name} {self.demandeur.last_name} a  {possesseur.first_name} {possesseur.last_name} - status: {self.transfert_status}"
+
+
+# lorsqu'un livre emprunte doit etre retourné
+# initié par emprunteur qui indique avoir retourné le livre
+# (dans le futur autre mode de creation comme propriétaire envoi message a emprunteur pour réclamer son livre, ou emprunteur qui envoi message au propriétaire pour initier retour)
+
+class Retour(models.Model):
+    livre = models.ForeignKey(Livre, on_delete=models.CASCADE)
+    creation_date = models.DateField(editable=False)
+    emprunteur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emprunteur')
+
+    # devrait etre le createur du livre, mais celui-ci pourrait changer...
+    proprietaire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proprietaire')
+
+    # date à laquelle l'emprunteur a déclarer avoir retourné le livre
+    emprunteur_retourne_livre_date = models.DateField(null=True, blank=True)
+
+    # date à laquelle le propriétaire confirme avoir recupéré son livre
+    proprietaire_a_recupere_son_livre_date = models.DateField(null=True, blank=True)
+
+    # Date à laquelle l'emprunteur du livre envois un message au proprietaire pour planifier le retour du livre
+    emprunteur_message_init_retour_date = models.DateField(null=True, blank=True)
+
+    # Date à laquelle le proprietaire du livre envois un message a l'emprunteur pour réclamer le retour du livre
+    proprietaire_message_reclame_retour_date = models.DateField(null=True, blank=True)
+
+    class RetourStatus(models.TextChoices):
+        ACTIF = 'ACTIF', _('ACTIF')
+        ACHEVE = 'ACHEVE'
+        _('ACHEVE')
+        CANCEL = 'CANCEL', _('CANCEL')
+
+    retour_status = models.CharField(
+        max_length=10,
+        choices=RetourStatus.choices,
+        default=RetourStatus.ACTIF,
+    )
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.creation_date = timezone.now()
+
+        return super(Retour, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.livre.titre_text} - emprunteur: {self.emprunteur.first_name} {self.emprunteur.last_name} - crée le: {self.creation_date} "

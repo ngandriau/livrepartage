@@ -20,5 +20,6 @@ urlpatterns = [
     path('livrerecu/<int:pk>/', views.livre_a_ete_recu, name='livrerecu'),
     path('annultransfert/<int:pk>/', views.annul_demande_transfert, name='annultransfert'),
     path('sendmessagetoinittransfert/<int:pk>/', views.send_message_demandeur_to_prep_transfert, name='sendmessagetoinittransfert'),
+    path('retourparemprunteur/<int:pk>/', views.livre_a_ete_retourne_par_emprunteur, name='retourparemprunteur'),
 
 ]

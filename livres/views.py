@@ -555,6 +555,9 @@ def livre_a_ete_transfere(request, pk):
         request.session['prevaction'] = 'livreAEteTransfere'
         request.session['transfert_id'] = transfert.id
 
+    send_email(transfert.demandeur.email, "Le possesseur d'un livre qui vous intéresse indique qu'il vous l'a transféré.",
+               f"{transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} indique qu'il vous a transféré le livre '{transfert.livre.titre_text}'. <br/> Veuillez confirmer le transfert dans le système ou le contacter pour clarifier la situation à l'adresse: {transfert.livre.possesseur.email}. Merci.")
+
     return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 
 

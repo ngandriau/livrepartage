@@ -25,11 +25,13 @@ class Livre(models.Model):
     creation_date = models.DateField(editable=False)
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
+    possede_depuis_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
             self.creation_date = timezone.now()
+            self.possede_depuis_date = self.creation_date
 
         return super(Livre, self).save(*args, **kwargs)
 

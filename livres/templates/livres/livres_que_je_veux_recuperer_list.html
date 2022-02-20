@@ -1,0 +1,57 @@
+{% extends "livres/base.html" %}
+{% load static %}
+
+{% block title %}Livres que je veux recuperer{% endblock title %}
+
+
+
+{% block header %}
+    {% include 'livres/common_header.html' %}
+{% endblock header %}
+
+{% block content %}
+    {% if showSuccessMessage %}
+        <div class="container">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Succ&egrave;s!</strong> {{ showSuccessMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endif %}
+
+     <legend><h3>Livres que je veux récuperer</h3></legend>
+
+    {% if livres_list %}
+        <table class="table table-striped table-hover">
+            <tr>
+{#                <th scope="col">Transfert ID (tmp)</th>#}
+                <th scope="col">Titre</th>
+                <th scope="col">Emprunteur</th>
+                <th scope="col">email</th>
+                <th scope="col">Ville</th>
+                <th scope="col">Prêté depuis</th>
+                <th scope="col">Actions</th>
+            </tr>
+            {% for livre in livres_list %}
+                <tr>
+                <td>{{ livre.titre_text }}</td>
+                <td>{{ livre.possesseur.first_name }} {{ livre.possesseur.last_name }}  </td>
+                <td>{{ livre.possesseur.email }} </td>
+                <td>{{ livre.possesseur.userprofile.ville }} </td>
+                <td>{{ livre.possede_depuis_date }} </td>
+                <td>
+{#                A finaliser, ne dois s'afficher que si le retour a été initié par emprunteur#}
+                    <form action="#" method="post">{% csrf_token %}
+                        <button class="btn btn-primary btn-default" type="submit">Confirmer retour
+                        </button>
+                    </form>
+                </td>
+            {% endfor %}
+            </tr>
+        </table>
+    {% else %}
+        <p>Pas de livre à récupérer.</p>
+    {% endif %}
+{% endblock content %}
+
+

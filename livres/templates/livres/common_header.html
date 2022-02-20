@@ -19,7 +19,7 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'livres:listtransfertmeslivre' %}">En demande</a></li>
-                        <li><a class="dropdown-item" href="#">A récupérer</a></li>
+                        <li><a class="dropdown-item" href="{% url 'livres:listlivrequejeveuxrecuperer' %}">A récupérer</a></li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -30,7 +30,7 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'livres:listmesdemandestransfert' %}">Qui m'intéressent</a></li>
                         <li><a class="dropdown-item" href="{% url 'livres:listmesdemandestransfert' %}">Que je dois confirmer</a></li>
-                        <li><a class="dropdown-item"   href="#" >Que je dois retourner</a></li>
+                        <li><a class="dropdown-item"   href="{% url 'livres:listlivrequejedoisretourner' %}" >Que je dois retourner</a></li>
                     </ul>
                 </li>
             </ul>

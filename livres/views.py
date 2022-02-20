@@ -369,6 +369,27 @@ def list_demandes_transfert_mes_livres(request):
 
     return render(request, 'livres/transferts_mes_livres_list.html', context)
 
+@login_required()
+def list_livres_que_je_dois_retourner(request):
+    livres_list = Livre.objects.filter(possesseur=request.user, mode_partage=Livre.ModeDePartage.PRET).exclude(
+        createur=request.user).order_by('-possede_depuis_date')
+
+    context = {
+        'livres_list': livres_list
+    }
+
+    return render(request, 'livres/livres_que_je_dois_retourner_list.html', context)
+
+@login_required()
+def list_livres_que_je_veux_recuperer(request):
+    livres_list = Livre.objects.filter(createur=request.user, mode_partage=Livre.ModeDePartage.PRET).exclude(
+        possesseur=request.user).order_by('-possede_depuis_date')
+
+    context = {
+        'livres_list': livres_list
+    }
+
+    return render(request, 'livres/livres_que_je_veux_recuperer_list.html', context)
 
 @login_required()
 def list_mes_demandes_transfert_de_livres(request):
@@ -419,12 +440,20 @@ def livre_a_ete_transfere(request, pk):
 
 @login_required()
 def livre_a_ete_recu(request, pk):
+    """
+    Le demandeur d'un livre confirme qu'il a bien recu un livre et qu'il en est le possesseur
+    :param request:
+    :param pk:
+    :return:
+    """
+
     print(f"livre_a_ete_recu {pk}")
     transfert = get_object_or_404(Transfert, pk=pk)
     transfert.transfert_status = Transfert.TransfertStatus.OKDEMANDEUR
     transfert.ok_demandeur_date = timezone.now()
     transfert.possesseur_final = transfert.livre.possesseur
     transfert.livre.possesseur = request.user
+    transfert.livre.possede_depuis_date = timezone.now()
     # TODO: dans quel etat on met le livre a ce moment? Certainement bloque en mode lecture
     transfert.save()
     transfert.livre.save()

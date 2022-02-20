@@ -44,31 +44,30 @@
                 </div>
             </div>
             <div class="p-2 bd-highlight">
-                <div class="d-flex flex-column bd-highlight mb-2">
-                    <div class="p-2 bd-highlight">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="true" id="jepossede_check"
-                                   {% if livreSearchCriteria.jepossede %}checked{% endif %}
-                                   form="searchform"
-                                   name="jepossede_check">
-                            <label class="form-check-label" for="jepossede_check">
-                                Je possède
-                            </label>
-                        </div>
-                    </div>
-                    <div class="p-2 bd-highlight">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="true" id="jaicree_check"
-                                   {% if livreSearchCriteria.jaicree %}checked{% endif %}
-                                   form="searchform"
-                                   name="jaicree_check">
-                            <label class="form-check-label" for="jaicree_check">
-                                J'ai créé
-                            </label>
-                        </div>
-                    </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="meslivres" id="meslivres" name="livrePossession" form="searchform"
+                    {% if livreSearchCriteria.livrepossession == "meslivres" %} checked {% endif %} >
+                    <label class="form-check-label" for="meslivres">
+                        mes livres
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="lesautres" id="lesautres" name="livrePossession" form="searchform"
+                           {% if livreSearchCriteria.livrepossession == "lesautres" %} checked {% endif %} >
+                    <label class="form-check-label" for="lesautres">
+                        les autres livres
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="tous" id="tous" name="livrePossession" form="searchform"
+                    {% if livreSearchCriteria.livrepossession == "tous" %} checked {% endif %} >
+                    <label class="form-check-label" for="tous">
+                        tous les livres
+                    </label>
                 </div>
             </div>
+
+
             <div class="p-2 bd-highlight">
                 <div class="d-flex flex-column bd-highlight mb-2">
                     <div class="p-2 bd-highlight">
@@ -187,6 +186,8 @@
     }
 
     {% endif %}
+
+
 
 
 

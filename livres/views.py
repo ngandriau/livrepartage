@@ -18,11 +18,10 @@ from .queries import findTransfertsPourLivreTransfereNonConfirme
 
 
 class LivreSearchCriteria:
-    def __init__(self, searchinput='', jaicree=False, jepossede=False, dateEditionAfter='', dateEditionBefore='',
+    def __init__(self, searchinput='', livrepossession="tous",  dateEditionAfter='', dateEditionBefore='',
                  dateCreationAfter='', dateCreationBefore=''):
         self.searchinput = searchinput
-        self.jaicree = jaicree
-        self.jepossede = jepossede
+        self.livrepossession = livrepossession
         self.dateEditionAfter = dateEditionAfter
         self.dateEditionBefore = dateEditionBefore
         self.dateCreationAfter = dateCreationAfter
@@ -34,8 +33,7 @@ def loadLivreSearchCriteriaFromSession(session):
 
     livreSearchCriteria.searchinput = session.get('livreSearchInput', '')
     print(f"loadLivreSearchCriteriaFromSession() - searchinput=={livreSearchCriteria.searchinput}")
-    livreSearchCriteria.jaicree = session.get('jaicree', False)
-    livreSearchCriteria.jepossede = session.get('jepossede', False)
+    livreSearchCriteria.livrepossession = session.get('livrepossession', "tous")
     livreSearchCriteria.dateEditionAfter = session.get('dateEditionAfter', '')
     livreSearchCriteria.dateEditionBefore = session.get('dateEditionBefore', '')
     livreSearchCriteria.dateCreationAfter = session.get('dateCreationAfter', '')
@@ -46,8 +44,7 @@ def loadLivreSearchCriteriaFromSession(session):
 
 def writeLivreSearchCriteriaFromSession(session, criteria):
     session['livreSearchInput'] = criteria.searchinput
-    session['jaicree'] = criteria.jaicree
-    session['jepossede'] = criteria.jepossede
+    session['livrepossession'] = criteria.livrepossession
     session['dateEditionAfter'] = criteria.dateEditionAfter
     session['dateEditionBefore'] = criteria.dateEditionBefore
     session['dateCreationAfter'] = criteria.dateCreationAfter
@@ -68,15 +65,10 @@ def index_view(request):
         else:
             livreSearchCriteria.searchinput = ''
 
-        if request.POST.get('jepossede_check'):
-            livreSearchCriteria.jepossede = True
+        if request.POST.get('livrePossession'):
+            livreSearchCriteria.livrepossession = request.POST['livrePossession']
         else:
-            livreSearchCriteria.jepossede = False
-
-        if request.POST.get('jaicree_check'):
-            livreSearchCriteria.jaicree = True
-        else:
-            livreSearchCriteria.jaicree = False
+            livreSearchCriteria.livrepossession = "tous"
 
         if request.POST.get('dateEditionInputAfter'):
             livreSearchCriteria.dateEditionAfter = request.POST['dateEditionInputAfter']
@@ -105,15 +97,10 @@ def index_view(request):
         mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(
         livre_code__contains=livreSearchCriteria.searchinput))
 
-    if livreSearchCriteria.jepossede:
-        queryset = queryset.exclude(~Q(possesseur=request.user))
-    else:
-        queryset = queryset.exclude(Q(possesseur=request.user))
-
-    if livreSearchCriteria.jaicree:
-        queryset = queryset.exclude(~Q(createur=request.user))
-    else:
-        queryset = queryset.exclude(Q(createur=request.user))
+    if livreSearchCriteria.livrepossession == "meslivres":
+        queryset = queryset.filter(Q(possesseur=request.user) | Q(createur=request.user) )
+    elif livreSearchCriteria.livrepossession == "lesautres":
+        queryset = queryset.exclude(Q(possesseur=request.user) | Q(createur=request.user) )
 
     if (livreSearchCriteria.dateEditionAfter):
         try:
@@ -255,8 +242,8 @@ def submit_nouveau_livre(request):
     request.session['prevaction'] = 'newlivre'
     request.session['livre_id'] = livre.id
 
-    # // change criteres de recherche pour s'assurer que le nouveau livre apparait dans la liste
-    writeLivreSearchCriteriaFromSession(request.session, LivreSearchCriteria(jepossede=True, jaicree=True))
+    # change criteres de recherche pour s'assurer que le nouveau livre apparait dans la liste
+    writeLivreSearchCriteriaFromSession(request.session, LivreSearchCriteria( livrepossession="meslivres"))
     return redirect(reverse('livres:index'))
 
 

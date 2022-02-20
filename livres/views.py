@@ -138,7 +138,7 @@ def index_view(request):
                 f"index_view() - ex while parsing dateCreationBefore with value:[{livreSearchCriteria.dateCreationBefore}]")
             livreSearchCriteria.dateCreationBefore = f"INVALIDE: {livreSearchCriteria.dateCreationBefore}"
 
-    latest_created_livre_list = queryset.order_by('-creation_date')[:25]
+    latest_created_livre_list = queryset.order_by('-creation_date')[:100]
 
     writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
 

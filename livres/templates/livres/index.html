@@ -122,16 +122,19 @@
                 <td>{{ livre.publication_date|date:"d M Y" }}</td>
                 <td>
                     {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
-                        {% if livre not in livres_avec_transfert_actif_pour_user %}
-                            <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
-                                {% csrf_token %}
-                                <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
-                                <br>
-                            </form>
-                        {% else %}
-                            Transfert d&eacute;j&agrave; demand&eacute;
-                            {# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}
-                            {#                    le {{ livres_avec_transfert_actif_pour_user|get_key:livre }}#}
+                        {# le createur d<un livre en mode PRET ne peut pas initier une demande de transfert. Il passera par ne demande de retour  #}
+                        {% if livre.mode_partage == DON or livre.createur != user %}
+                            {% if livre not in livres_avec_transfert_actif_pour_user %}
+                                <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
+                                    <br>
+                                </form>
+                            {% else %}
+                                Transfert d&eacute;j&agrave; demand&eacute;
+                                {# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}
+                                {#                    le {{ livres_avec_transfert_actif_pour_user|get_key:livre }}#}
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>

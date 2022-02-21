@@ -621,7 +621,7 @@ Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.
 
 def send_email(destinataire, sujet, message):
     print(f"send email a: {destinataire} - {sujet} - {message}")
-    if not distutils.util.strtobool(config('EMAIL_ACTIF')):
+    if not distutils.util.strtobool(config('EMAIL_ACTIF', "False")):
         print('  !!!Email pas actif. ')
         return
 

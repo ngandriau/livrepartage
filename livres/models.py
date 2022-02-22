@@ -146,3 +146,4 @@ class Retour(models.Model):
 
     def __str__(self):
         return f"{self.livre.titre_text} - emprunteur: {self.emprunteur.first_name} {self.emprunteur.last_name} - crée le: {self.creation_date} "
+

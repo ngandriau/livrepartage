@@ -122,7 +122,7 @@
                 <td>
                     {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
                         {# le createur d<un livre en mode PRET ne peut pas initier une demande de transfert. Il passera par ne demande de retour  #}
-                        {% if livre.mode_partage == DON or livre.createur != user %}
+                        {% if livre.mode_partage == 'DON' or livre.createur != user %}
                             {% if livre not in livres_avec_transfert_actif_pour_user %}
                                 <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
                                     {% csrf_token %}

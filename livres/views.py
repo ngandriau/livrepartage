@@ -516,7 +516,7 @@ def livre_retour_proprietaire_envoi_msg_rappel(request, pk):
     retour.save()
 
     send_email(retour.emprunteur.email, "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous.",
-               f"{livre.createur.first_name} {livre.createur.last_name} vous informe qu'il aimerait récupérer son livre '{livre.titre_text}' que vous avez depuis le {livre.possede_depuis_date}. <br/> Merci de prendre contact avec lui a l'adresse suivante: {livre.createur.email}")
+               f"{livre.createur.first_name} {livre.createur.last_name} vous informe qu'il aimerait récupérer son livre '{livre.titre_text}' que vous avez depuis le {livre.possede_depuis_date}. <br/> Merci de prendre contact a l'adresse suivante: {livre.createur.email}")
 
     request.session['prevaction'] = 'retourproprietaireenvoiemessage'
     request.session['retour_id'] = retour.id
@@ -543,7 +543,7 @@ def livre_a_ete_transfere(request, pk):
         request.session['transfert_id'] = transfert.id
 
     send_email(transfert.demandeur.email, "Le possesseur d'un livre qui vous intéresse indique qu'il vous l'a transféré.",
-               f"{transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} indique qu'il vous a transféré le livre '{transfert.livre.titre_text}'. <br/> Veuillez confirmer le transfert dans le système ou le contacter pour clarifier la situation à l'adresse: {transfert.livre.possesseur.email}. Merci.")
+               f"{transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} indique vous avoir transféré le livre '{transfert.livre.titre_text}'. <br/> Veuillez confirmer le transfert dans le système ou communiquer pour clarifier la situation à l'adresse en utilisant l'adresse suivante: {transfert.livre.possesseur.email}. Merci.")
 
     return HttpResponseRedirect(reverse('livres:listtransfertmeslivre'))
 
@@ -608,8 +608,8 @@ def send_message_demandeur_to_prep_transfert(request, pk):
     sujet = "Le possesseur d'un livre qui vous intéresse cherche à communiquer avec vous."
 
     message = f"""\
-Le possesseur du livre '{transfert.livre.titre_text}', pour lequel vous avez fait une demande de transfert le {transfert.creation_date} a communiqué avec vous. 
-Il se nomme {transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} et vous pouvez le contacter par email à: {transfert.livre.possesseur.email}"""
+{transfert.livre.possesseur.first_name} {transfert.livre.possesseur.last_name} qui possède le livre '{transfert.livre.titre_text}', pour lequel vous avez fait une demande de transfert le {transfert.creation_date} a communiqué avec vous. 
+ vous pouvez communiquer par email à: {transfert.livre.possesseur.email} pour organiser l'échange."""
 
     send_email(transfert.demandeur.email, sujet, message)
 

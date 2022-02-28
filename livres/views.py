@@ -1,6 +1,7 @@
 import distutils
 import smtplib
 import ssl
+import json
 from email.mime.text import MIMEText
 
 import dateparser
@@ -204,8 +205,12 @@ class DetailView(generic.DetailView):
 def requete_nouveau_livre(request):
     print("requete_nouveau_livre()")
 
+    categories = json.loads(config('LIVRE_CATEGORIES'))
+    sortedCategories = sorted(categories.items(), key=lambda x: x[1])
+
     context = {
-        'action': 'creation'
+        'action': 'creation',
+        'categories': sortedCategories
     }
     return render(request, 'livres/livre_edit.html', context)
 
@@ -214,9 +219,23 @@ def requete_nouveau_livre(request):
 def requete_edit_livre(request, pk):
     print(f"requete edit livre {pk}")
     livre = get_object_or_404(Livre, pk=pk)
+
+    selectedCategories = {}
+    if(livre.categories):
+        selectedCategories= eval(livre.categories)
+    sortedselectedCategories = sorted(selectedCategories.items(), key=lambda x: x[1])
+
+    # prepare remaining categories
+    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    for category in sortedselectedCategories:
+        categoriesDict.pop(category[0])
+    sortedRemainingCategories = sorted(categoriesDict.items(), key=lambda x: x[1])
+
     context = {
         'action': 'edition',
         'livre': livre,
+        'sortedselectedCategories': sortedselectedCategories,
+        'sortedRemainingCategories': sortedRemainingCategories
     }
     return render(request, 'livres/livre_edit.html', context)
 
@@ -224,6 +243,10 @@ def requete_edit_livre(request, pk):
 @login_required()
 def submit_nouveau_livre(request):
     print(f"submit_nouveau_livre({request.POST}) ")
+
+    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    selectedCategories = dict((k, categoriesDict[k]) for k in request.POST.getlist('categories') if k in categoriesDict)
+
 
     livre = Livre(
         titre_text=request.POST['titre'],
@@ -233,7 +256,8 @@ def submit_nouveau_livre(request):
         mode_partage=request.POST['mode_partage'],
         url_externe_livre_text=request.POST['pageweb'],
         publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr']),
-        mots_sujets_txt=selectionnerTroisPremiersMots(request.POST['motssujets'])
+        mots_sujets_txt=selectionnerTroisPremiersMots(request.POST['motssujets']),
+        categories=selectedCategories
     )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
@@ -266,6 +290,10 @@ def submit_edit_livre(request):
     livre.publication_date = dateparser.parse(request.POST['dateEditionInput'], languages=['fr'])
     livre.url_externe_livre_text = request.POST['pageweb']
     livre.mots_sujets_txt = selectionnerTroisPremiersMots(request.POST['motssujets'])
+
+    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    livre.categories = dict((k, categoriesDict[k]) for k in request.POST.getlist('categories') if k in categoriesDict)
+
     livre.save()
 
     request.session['prevaction'] = 'editlivre'

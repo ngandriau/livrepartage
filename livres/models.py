@@ -26,6 +26,7 @@ class Livre(models.Model):
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
     possesseur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseur')
     possede_depuis_date = models.DateField(null=True, blank=True)
+    categories = models.CharField(max_length=400, blank=True, default='')
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''

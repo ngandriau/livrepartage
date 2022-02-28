@@ -45,22 +45,25 @@
             </div>
             <div class="p-2 bd-highlight">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" value="meslivres" id="meslivres" name="livrePossession" form="searchform"
-                    {% if livreSearchCriteria.livrepossession == "meslivres" %} checked {% endif %} >
+                    <input class="form-check-input" type="radio" value="meslivres" id="meslivres" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "meslivres" %} checked {% endif %} >
                     <label class="form-check-label" for="meslivres">
                         mes livres
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" value="lesautres" id="lesautres" name="livrePossession" form="searchform"
-                           {% if livreSearchCriteria.livrepossession == "lesautres" %} checked {% endif %} >
+                    <input class="form-check-input" type="radio" value="lesautres" id="lesautres" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "lesautres" %} checked {% endif %} >
                     <label class="form-check-label" for="lesautres">
                         les autres livres
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" value="tous" id="tous" name="livrePossession" form="searchform"
-                    {% if livreSearchCriteria.livrepossession == "tous" %} checked {% endif %} >
+                    <input class="form-check-input" type="radio" value="tous" id="tous" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "tous" %} checked {% endif %} >
                     <label class="form-check-label" for="tous">
                         tous les livres
                     </label>
@@ -85,6 +88,18 @@
                                placeholder="jj/mm/yyyy" size="6" value="{{ livreSearchCriteria.dateCreationBefore }}">
                     </div>
                 </div>
+            </div>
+
+            <div class="p-2 bd-highlight">
+{#                <label class="form-label">Catégories du livre:</label>#}
+                <select class="form-select" multiple size="3" id="categories" name="categories" form="searchform">
+                    {% for category in livreSearchCriteria.sortedselectedCategoriesList %}
+                        <option value="{{ category.0 }}" selected>{{ category.1 }}</option>
+                    {% endfor %}
+                    {% for category in livreSearchCriteria.sortedRemainingCategoriesList %}
+                        <option value="{{ category.0 }}">{{ category.1 }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
         </div>
@@ -186,6 +201,7 @@
     }
 
     {% endif %}
+
 
 
 

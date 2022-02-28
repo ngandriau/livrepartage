@@ -27,6 +27,8 @@ class LivreSearchCriteria:
         self.dateEditionBefore = dateEditionBefore
         self.dateCreationAfter = dateCreationAfter
         self.dateCreationBefore = dateCreationBefore
+        self.sortedselectedCategoriesList = [] # list of tupple ("category key", "category value")
+        self.sortedRemainingCategoriesList = []  # list of tupple ("category key", "category value")
 
 
 def loadLivreSearchCriteriaFromSession(session):
@@ -98,6 +100,12 @@ def index_view(request):
         mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(
         livre_code__contains=livreSearchCriteria.searchinput))
 
+    # Ajoute filtre par rapport aux categories selectionnes dans le formulaire
+    # queryset = queryset.filter(Q(categories__contains="'jeunesse': 'jeunesse'"))
+    selectedCategoriesDict = getSelectedCategoriesFromPost(request=request, selectFieldName='categories')
+    for key, value in selectedCategoriesDict.items():
+        queryset = queryset.filter(Q(categories__contains=f"'{key}': '{value}'"))
+
     if livreSearchCriteria.livrepossession == "meslivres":
         queryset = queryset.filter(Q(possesseur=request.user) | Q(createur=request.user) )
     elif livreSearchCriteria.livrepossession == "lesautres":
@@ -142,6 +150,11 @@ def index_view(request):
     latest_created_livre_list = queryset.order_by('-creation_date')[:100]
 
     writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
+
+
+    # TEMP
+    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    livreSearchCriteria.sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
 
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
@@ -220,32 +233,43 @@ def requete_edit_livre(request, pk):
     print(f"requete edit livre {pk}")
     livre = get_object_or_404(Livre, pk=pk)
 
-    selectedCategories = {}
+    selectedCategoriesDict = {}
     if(livre.categories):
-        selectedCategories= eval(livre.categories)
-    sortedselectedCategories = sorted(selectedCategories.items(), key=lambda x: x[1])
+        selectedCategoriesDict= eval(livre.categories)
+    sortedselectedCategoriesList = sorted(selectedCategoriesDict.items(), key=lambda x: x[1])
+    # sortedselectedCategoriesList list of tupple ("category key", "category value")
 
     # prepare remaining categories
     categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
-    for category in sortedselectedCategories:
+    for category in sortedselectedCategoriesList:
         categoriesDict.pop(category[0])
-    sortedRemainingCategories = sorted(categoriesDict.items(), key=lambda x: x[1])
+    sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
+    # sortedRemainingCategoriesList list of tupple ("category key", "category value")
 
     context = {
         'action': 'edition',
         'livre': livre,
-        'sortedselectedCategories': sortedselectedCategories,
-        'sortedRemainingCategories': sortedRemainingCategories
+        'sortedselectedCategories': sortedselectedCategoriesList,
+        'sortedRemainingCategories': sortedRemainingCategoriesList
     }
     return render(request, 'livres/livre_edit.html', context)
 
+def getSelectedCategoriesFromPost(request, selectFieldName):
+    """
+       identifie les 'categories' de livre selectionnees dans un formulaire passe a la request
+       :param selectFieldName: le nom de l'input type:select dans le formulaire
+       :return: un dictionnaire <key:cle de categorie, value: text de la categorie>
+       """
+
+    allCategoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    selectedCategoriesDict = dict((k, allCategoriesDict[k]) for k in request.POST.getlist(selectFieldName) if k in allCategoriesDict)
+    return selectedCategoriesDict
 
 @login_required()
 def submit_nouveau_livre(request):
     print(f"submit_nouveau_livre({request.POST}) ")
 
-    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
-    selectedCategories = dict((k, categoriesDict[k]) for k in request.POST.getlist('categories') if k in categoriesDict)
+    selectedCategoriesDict = getSelectedCategoriesFromPost(request=request, selectFieldName='categories')
 
 
     livre = Livre(
@@ -257,7 +281,7 @@ def submit_nouveau_livre(request):
         url_externe_livre_text=request.POST['pageweb'],
         publication_date=dateparser.parse(request.POST['dateEditionInput'], languages=['fr']),
         mots_sujets_txt=selectionnerTroisPremiersMots(request.POST['motssujets']),
-        categories=selectedCategories
+        categories=selectedCategoriesDict
     )
     livre.save()
     livre.livre_code = f"{config('LIVRE_CODE_PREFIX')}{livre.id}"
@@ -291,8 +315,7 @@ def submit_edit_livre(request):
     livre.url_externe_livre_text = request.POST['pageweb']
     livre.mots_sujets_txt = selectionnerTroisPremiersMots(request.POST['motssujets'])
 
-    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
-    livre.categories = dict((k, categoriesDict[k]) for k in request.POST.getlist('categories') if k in categoriesDict)
+    livre.categories = getSelectedCategoriesFromPost(request=request, selectFieldName='categories')
 
     livre.save()
 

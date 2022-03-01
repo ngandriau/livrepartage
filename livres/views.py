@@ -1,7 +1,7 @@
 import distutils
+import json
 import smtplib
 import ssl
-import json
 from email.mime.text import MIMEText
 
 import dateparser
@@ -42,6 +42,20 @@ def loadLivreSearchCriteriaFromSession(session):
     livreSearchCriteria.dateCreationAfter = session.get('dateCreationAfter', '')
     livreSearchCriteria.dateCreationBefore = session.get('dateCreationBefore', '')
 
+    # Je ne suis pas certain de ce qui est sauvegardé dans la session, une string de list ou une liste
+    sessionValue = session.get('sortedselectedCategoriesList', "")
+    if not sessionValue:
+        livreSearchCriteria.sortedselectedCategoriesList = []
+    else:
+        livreSearchCriteria.sortedselectedCategoriesList = sessionValue
+
+    #  Oter les categories deja selectionnees
+    categoriesDict = getAllCategories()
+    for category in livreSearchCriteria.sortedselectedCategoriesList:
+        categoriesDict.pop(category[0], None)
+    livreSearchCriteria.sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
+    # sortedRemainingCategoriesList list of tupple ("category key", "category value")
+
     return livreSearchCriteria
 
 
@@ -52,64 +66,77 @@ def writeLivreSearchCriteriaFromSession(session, criteria):
     session['dateEditionBefore'] = criteria.dateEditionBefore
     session['dateCreationAfter'] = criteria.dateCreationAfter
     session['dateCreationBefore'] = criteria.dateCreationBefore
+    session['sortedselectedCategoriesList'] = criteria.sortedselectedCategoriesList
 
+def updateLivreSearchCriteriaFromPost(request, livreSearchCriteria):
+    """
+    update the search criteria passed as argument with the content of the request.POST
+    :param request:
+    :return: nothing, but update the value of the search criteria passed as argument
+    """
 
-@login_required()
-def index_view(request):
-    print(f"index_view(POST: {request.POST})")
+    if request.POST.get('searchinput'):
+        livreSearchCriteria.searchinput = request.POST['searchinput']
+    else:
+        livreSearchCriteria.searchinput = ''
 
-    # recuperer les criteres de recherche dans la session si existe
-    livreSearchCriteria = loadLivreSearchCriteriaFromSession(request.session)
+    if request.POST.get('livrePossession'):
+        livreSearchCriteria.livrepossession = request.POST['livrePossession']
+    else:
+        livreSearchCriteria.livrepossession = "tous"
 
-    # si l'action est vraiment une recherche de livre avec un formulaire, mettre a jours nos criteres
-    if (request.POST.get('cherchelivre')):
-        if request.POST.get('searchinput'):
-            livreSearchCriteria.searchinput = request.POST['searchinput']
-        else:
-            livreSearchCriteria.searchinput = ''
+    if request.POST.get('dateEditionInputAfter'):
+        livreSearchCriteria.dateEditionAfter = request.POST['dateEditionInputAfter']
+    else:
+        livreSearchCriteria.dateEditionAfter = ''
 
-        if request.POST.get('livrePossession'):
-            livreSearchCriteria.livrepossession = request.POST['livrePossession']
-        else:
-            livreSearchCriteria.livrepossession = "tous"
+    if request.POST.get('dateEditionInputBefore'):
+        livreSearchCriteria.dateEditionBefore = request.POST['dateEditionInputBefore']
+    else:
+        livreSearchCriteria.dateEditionBefore = ''
 
-        if request.POST.get('dateEditionInputAfter'):
-            livreSearchCriteria.dateEditionAfter = request.POST['dateEditionInputAfter']
-        else:
-            livreSearchCriteria.dateEditionAfter = ''
+    if request.POST.get('dateCreationInputAfter'):
+        livreSearchCriteria.dateCreationAfter = request.POST['dateCreationInputAfter']
+    else:
+        livreSearchCriteria.dateCreationAfter = ''
 
-        if request.POST.get('dateEditionInputBefore'):
-            livreSearchCriteria.dateEditionBefore = request.POST['dateEditionInputBefore']
-        else:
-            livreSearchCriteria.dateEditionBefore = ''
+    if request.POST.get('dateCreationInputBefore'):
+        livreSearchCriteria.dateCreationBefore = request.POST['dateCreationInputBefore']
+    else:
+        livreSearchCriteria.dateCreationBefore = ''
 
-        if request.POST.get('dateCreationInputAfter'):
-            livreSearchCriteria.dateCreationAfter = request.POST['dateCreationInputAfter']
-        else:
-            livreSearchCriteria.dateCreationAfter = ''
+    selectedCategoriesDict = getSelectedCategoriesFromPost(request=request, selectFieldName='categories')
+    livreSearchCriteria.sortedselectedCategoriesList = sorted(selectedCategoriesDict.items(), key=lambda x: x[1])
 
-        if request.POST.get('dateCreationInputBefore'):
-            livreSearchCriteria.dateCreationBefore = request.POST['dateCreationInputBefore']
-        else:
-            livreSearchCriteria.dateCreationBefore = ''
+    # prepare remaining categories
+    categoriesDict = getAllCategories()
+    for category in livreSearchCriteria.sortedselectedCategoriesList:
+        categoriesDict.pop(category[0], None)
+    livreSearchCriteria.sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
+    # livreSearchCriteria.sortedRemainingCategoriesList list of tupple ("category key", "category value")
 
-    # print(f"  livreSearchCriteria.searchinput: {livreSearchCriteria.searchinput}")
+def buildLivreQuerySet(livreSearchCriteria, currentUser):
+    """
+    :param livreSearchCriteria:
+    :param currentUser: typically a request.user
+    :return: a queryset basé sur Livre.objects.all() et configuré avec les critères de recherche
+    """
+
     queryset = Livre.objects.all()
     queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
         auteur_text__contains=livreSearchCriteria.searchinput) | Q(
         mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(
         livre_code__contains=livreSearchCriteria.searchinput))
 
-    # Ajoute filtre par rapport aux categories selectionnes dans le formulaire
+    # Ajoute filtre par rapport aux categories selectionnées dans le formulaire
     # queryset = queryset.filter(Q(categories__contains="'jeunesse': 'jeunesse'"))
-    selectedCategoriesDict = getSelectedCategoriesFromPost(request=request, selectFieldName='categories')
-    for key, value in selectedCategoriesDict.items():
-        queryset = queryset.filter(Q(categories__contains=f"'{key}': '{value}'"))
+    for category in livreSearchCriteria.sortedselectedCategoriesList:
+        queryset = queryset.filter(Q(categories__contains=f"'{category[0]}': '{category[1]}'"))
 
     if livreSearchCriteria.livrepossession == "meslivres":
-        queryset = queryset.filter(Q(possesseur=request.user) | Q(createur=request.user) )
+        queryset = queryset.filter(Q(possesseur=currentUser) | Q(createur=currentUser))
     elif livreSearchCriteria.livrepossession == "lesautres":
-        queryset = queryset.exclude(Q(possesseur=request.user) | Q(createur=request.user) )
+        queryset = queryset.exclude(Q(possesseur=currentUser) | Q(createur=currentUser))
 
     if (livreSearchCriteria.dateEditionAfter):
         try:
@@ -147,14 +174,24 @@ def index_view(request):
                 f"index_view() - ex while parsing dateCreationBefore with value:[{livreSearchCriteria.dateCreationBefore}]")
             livreSearchCriteria.dateCreationBefore = f"INVALIDE: {livreSearchCriteria.dateCreationBefore}"
 
+    return queryset
+
+@login_required()
+def index_view(request):
+    print(f"index_view(POST: {request.POST})")
+
+    # recuperer les criteres de recherche dans la session si existe
+    livreSearchCriteria = loadLivreSearchCriteriaFromSession(request.session)
+
+    # si l'action est vraiment une recherche de livre avec un formulaire, mettre a jours nos criteres
+    if (request.POST.get('cherchelivre')):
+        updateLivreSearchCriteriaFromPost(request, livreSearchCriteria)
+
+    queryset = buildLivreQuerySet(livreSearchCriteria, request.user)
+
     latest_created_livre_list = queryset.order_by('-creation_date')[:100]
 
     writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
-
-
-    # TEMP
-    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
-    livreSearchCriteria.sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
 
     # clef = livre, value= transfert
     livres_avec_transfert_actif_pour_user = {}
@@ -218,7 +255,7 @@ class DetailView(generic.DetailView):
 def requete_nouveau_livre(request):
     print("requete_nouveau_livre()")
 
-    categories = json.loads(config('LIVRE_CATEGORIES'))
+    categories = getAllCategories()
     sortedCategories = sorted(categories.items(), key=lambda x: x[1])
 
     context = {
@@ -234,15 +271,15 @@ def requete_edit_livre(request, pk):
     livre = get_object_or_404(Livre, pk=pk)
 
     selectedCategoriesDict = {}
-    if(livre.categories):
-        selectedCategoriesDict= eval(livre.categories)
+    if (livre.categories):
+        selectedCategoriesDict = eval(livre.categories)
     sortedselectedCategoriesList = sorted(selectedCategoriesDict.items(), key=lambda x: x[1])
     # sortedselectedCategoriesList list of tupple ("category key", "category value")
 
     # prepare remaining categories
-    categoriesDict = json.loads(config('LIVRE_CATEGORIES'))
+    categoriesDict = getAllCategories()
     for category in sortedselectedCategoriesList:
-        categoriesDict.pop(category[0])
+        categoriesDict.pop(category[0], None)
     sortedRemainingCategoriesList = sorted(categoriesDict.items(), key=lambda x: x[1])
     # sortedRemainingCategoriesList list of tupple ("category key", "category value")
 
@@ -254,15 +291,26 @@ def requete_edit_livre(request, pk):
     }
     return render(request, 'livres/livre_edit.html', context)
 
+def getAllCategories():
+    """
+    :return: un Dict<key: categorie code, Value: categorie label> des categories de livres configurée. Vide si pas de config trouvées
+    """
+    categoriesDict = json.loads(config('LIVRE_CATEGORIES', "{}"))
+    if len(categoriesDict)==0:
+        print("WARNING: pas de categories de livre trouvée. Vérifier si la propriété 'LIVRE_CATEGORIES' est bien configurée")
+
+    return categoriesDict
+
+
 def getSelectedCategoriesFromPost(request, selectFieldName):
     """
-       identifie les 'categories' de livre selectionnees dans un formulaire passe a la request
+       identifie les 'categories' de livre selectionnees dans un formulaire passe à la request
        :param selectFieldName: le nom de l'input type:select dans le formulaire
        :return: un dictionnaire <key:cle de categorie, value: text de la categorie>
        """
 
-    allCategoriesDict = json.loads(config('LIVRE_CATEGORIES'))
-    selectedCategoriesDict = dict((k, allCategoriesDict[k]) for k in request.POST.getlist(selectFieldName) if k in allCategoriesDict)
+    allCategoriesDict= getAllCategories()
+    selectedCategoriesDict= dict((k, allCategoriesDict[k]) for k in request.POST.getlist(selectFieldName) if k in allCategoriesDict)
     return selectedCategoriesDict
 
 @login_required()

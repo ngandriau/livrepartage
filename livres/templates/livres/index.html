@@ -110,6 +110,7 @@
             <tr>
                 <th scope="col">Titre</th>
                 <th scope="col">Auteur(s)</th>
+                <th scope="col"></th> {# destiner aux liens de recherche comme duckduckgo - empty column header expres pour sauver espace #}
                 <th scope="col">Partage</th>
                 <th scope="col">Code Couverture</th>
                 <th scope="col">Ville</th>
@@ -122,10 +123,11 @@
             {% for livre in latest_created_livre_list %}
                 <tr>
                 <td> {% if livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.id %}">{% endif %}
-                    {{ livre.titre_text }}
+                    <span class="label label-primary">{{ livre.titre_text }}</span>
                     {% if livre.possesseur == user %}</a>{% endif %}
                 </td>
                 <td>{{ livre.auteur_text }}</td>
+                <td><a href="https://duckduckgo.com/?q={{ livre.titre_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
                 <td>{{ livre.mode_partage }} </td>
                 <td>{{ livre.livre_code }} </td>
                 <td>{{ livre.possesseur.userprofile.ville }} </td>

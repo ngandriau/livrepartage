@@ -127,7 +127,7 @@
                     {% if livre.possesseur == user %}</a>{% endif %}
                 </td>
                 <td>{{ livre.auteur_text }}</td>
-                <td><a href="https://duckduckgo.com/?q={{ livre.titre_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
+                <td><a href="https://duckduckgo.com/?q={{ livre.titre_text|urlencode }} - {{ livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
                 <td>{{ livre.mode_partage }} </td>
                 <td>{{ livre.livre_code }} </td>
                 <td>{{ livre.possesseur.userprofile.ville }} </td>

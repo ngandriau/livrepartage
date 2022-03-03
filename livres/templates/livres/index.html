@@ -105,7 +105,7 @@
         </div>
     </div>
 
-    {% if latest_created_livre_list %}
+    {% if latest_created_livre_et_autres_list %}
         <table class="table table-striped table-hover">
             <tr>
                 <th scope="col">Titre</th>
@@ -120,36 +120,34 @@
                 <th scope="col">Date Publication</th>
                 <th scope="col">Actions</th>
             </tr>
-            {% for livre in latest_created_livre_list %}
+            {% for livre in latest_created_livre_et_autres_list %}
                 <tr>
-                <td> {% if livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.id %}">{% endif %}
-                    <span class="label label-primary">{{ livre.titre_text }}</span>
-                    {% if livre.possesseur == user %}</a>{% endif %}
+                <td> {% if livre.livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.livre.id %}">{% endif %}
+                    <span class="label label-primary">{{ livre.livre.titre_text }}</span>
+                    {% if livre.livre.possesseur == user %}</a>{% endif %}
                 </td>
-                <td>{{ livre.auteur_text }}</td>
-                <td><a href="https://duckduckgo.com/?q={{ livre.titre_text|urlencode }} - {{ livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
-                <td>{{ livre.mode_partage }} </td>
-                <td>{{ livre.livre_code }} </td>
-                <td>{{ livre.possesseur.userprofile.ville }} </td>
-                <td>{% if livre.possesseur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %}
+                <td>{{ livre.livre.auteur_text }}</td>
+                <td><a href="https://duckduckgo.com/?q={{ livre.livre.titre_text|urlencode }} - {{ livre.livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
+                <td>{{ livre.livre.mode_partage }} </td>
+                <td>{{ livre.livre.livre_code }} </td>
+                <td>{{ livre.livre.possesseur.userprofile.ville }} </td>
+                <td>{% if livre.livre.possesseur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %}
                 </td>
-                <td>{% if livre.createur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %} </td>
-                <td>{{ livre.creation_date |date:"d M Y" }}</td>
-                <td>{{ livre.publication_date|date:"d M Y" }}</td>
+                <td>{% if livre.livre.createur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %} </td>
+                <td>{{ livre.livre.creation_date |date:"d M Y" }}</td>
+                <td>{{ livre.livre.publication_date|date:"d M Y" }}</td>
                 <td>
-                    {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
+                    {% if livre.livre.possesseur != user and livre.livre.transferable_status != 'PERD' %}
                         {# le createur d<un livre en mode PRET ne peut pas initier une demande de transfert. Il passera par ne demande de retour  #}
-                        {% if livre.mode_partage == 'DON' or livre.createur != user %}
-                            {% if livre not in livres_avec_transfert_actif_pour_user %}
-                                <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
+                        {% if livre.livre.mode_partage == 'DON' or livre.livre.createur != user %}
+                            {% if not livre.transfert %}
+                                <form action="/livres/demandetransfert/{{ livre.livre.id }}/" method="post">
                                     {% csrf_token %}
                                     <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
                                     <br>
                                 </form>
                             {% else %}
-                                Transfert d&eacute;j&agrave; demand&eacute;
-                                {# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}
-                                {#                    le {{ livres_avec_transfert_actif_pour_user|get_key:livre }}#}
+                                Transfert demand&eacute; le {{ livre.transfert.creation_date }}
                             {% endif %}
                         {% endif %}
                     {% endif %}

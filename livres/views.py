@@ -190,36 +190,22 @@ def index_view(request):
     queryset = buildLivreQuerySet(livreSearchCriteria, request.user)
 
     latest_created_livre_list = queryset.order_by('-creation_date')[:100]
+    livreEtAutreList=[]
+    for livre in latest_created_livre_list:
+        livreEtAutreList.append(LivreEtAutreEltOpt(livre=livre))
 
     writeLivreSearchCriteriaFromSession(request.session, livreSearchCriteria)
 
-    # clef = livre, value= transfert
-    livres_avec_transfert_actif_pour_user = {}
-    for l in latest_created_livre_list:
-        transfert = Transfert.objects.filter(livre=l, demandeur=request.user, transfert_status__in=[
+    for lEtAutre in livreEtAutreList:
+        transfert = Transfert.objects.filter(livre=lEtAutre.livre, demandeur=request.user, transfert_status__in=[
             Transfert.TransfertStatus.INITIALISE,
-            Transfert.TransfertStatus.OKPOSSESSEUR])
-        if (transfert):
-            livres_avec_transfert_actif_pour_user[l] = transfert
+            Transfert.TransfertStatus.OKPOSSESSEUR]).first()
+        if transfert:
+            lEtAutre.transfert = transfert
 
     context = {
         'livreSearchCriteria': livreSearchCriteria,
-        'latest_created_livre_list': latest_created_livre_list,
-        'livres_avec_transfert_actif_pour_user': livres_avec_transfert_actif_pour_user,
-
-        'demandes_transfert_mes_livres_list': Transfert.objects.filter(livre__possesseur=request.user,
-                                                                       transfert_status='INIT')
-            .order_by('-creation_date'),
-
-        'receptions_live_a_confirmer_list': Transfert.objects.filter(demandeur=request.user,
-                                                                     transfert_status=Transfert.TransfertStatus.OKPOSSESSEUR)
-            .order_by('-ok_demandeur_date'),
-
-        'mes_demandes_transfert_list': Transfert.objects.filter(demandeur=request.user,
-                                                                transfert_status__in=[
-                                                                    Transfert.TransfertStatus.INITIALISE,
-                                                                    Transfert.TransfertStatus.OKPOSSESSEUR])
-            .order_by('-ok_demandeur_date')
+        'latest_created_livre_et_autres_list': livreEtAutreList,
     }
     if (request.session.__contains__('prevaction')):
         if (request.session['prevaction'] == 'newlivre'):
@@ -464,7 +450,7 @@ def list_livres_que_je_dois_retourner(request):
 
     liste_data_view = []
     for livre in livres_list:
-        liste_data_view.append(LivreEtRetourOpt(
+        liste_data_view.append(LivreEtAutreEltOpt(
             livre=livre,
             retour=Retour.objects.filter(livre=livre, emprunteur=request.user,
                                          retour_status=Retour.RetourStatus.ACTIF).first())
@@ -484,7 +470,7 @@ def list_livres_que_je_veux_recuperer(request):
 
     liste_data_view = []
     for livre in livres_list:
-        liste_data_view.append(LivreEtRetourOpt(
+        liste_data_view.append(LivreEtAutreEltOpt(
             livre=livre,
             retour=Retour.objects.filter(livre=livre, proprietaire=request.user,
                                          retour_status=Retour.RetourStatus.ACTIF).first())
@@ -740,7 +726,9 @@ def send_email(destinataire, sujet, message):
         server.send_message(msg)
 
 
-class LivreEtRetourOpt:
-    def __init__(self, livre, retour):
+
+class LivreEtAutreEltOpt:
+    def __init__(self, livre, retour=None, transfert=None):
         self.livre = livre
         self.retour = retour
+        self.transfert = transfert

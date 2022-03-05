@@ -4,4 +4,4 @@ from django.apps import AppConfig
 class LivresConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'livres'
-    version = '0.0.2-beta'
+    version = '0.0.3-beta'

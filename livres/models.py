@@ -28,6 +28,15 @@ class Livre(models.Model):
     possede_depuis_date = models.DateField(null=True, blank=True)
     categories = models.CharField(max_length=400, blank=True, default='')
 
+    def getSortedCategoriesAsStr(self):
+        if self.categories:
+            dict = eval(self.categories)
+            sortedList = sorted(dict.values())
+            return ", ".join(sortedList)
+        else:
+            return ""
+
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:

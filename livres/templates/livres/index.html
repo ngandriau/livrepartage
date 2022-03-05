@@ -125,7 +125,10 @@
                     <div><small>catégories:<em>{{ livre.livre.getSortedCategoriesAsStr }}</em></small></div>
                     <div><small>code couverture: <em>{{ livre.livre.livre_code }}</em></small></div>
                 </td>
-                <td><a href="https://duckduckgo.com/?q={{ livre.livre.titre_text|urlencode }} - {{ livre.livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></td>
+                <td>
+                    <div><a href="https://duckduckgo.com/?q={{ livre.livre.titre_text|urlencode }} - {{ livre.livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></div>
+                    {% if livre.livre.url_externe_livre_text %}<div><a href="{{ livre.livre.url_externe_livre_text }}" target="_blank"><img src="{% static 'livres/infoIcon.png' %}" width="20" height="20"/></a></div>{% endif %}
+                </td>
                 <td>{{ livre.livre.mode_partage }} </td>
                 <td>{{ livre.livre.possesseur.userprofile.ville }} </td>
                 <td>

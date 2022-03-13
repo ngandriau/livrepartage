@@ -20,7 +20,7 @@ class Livre(models.Model):
     titre_text = models.CharField(max_length=200)
     auteur_text = models.CharField(max_length=200, blank=True, default='')
     publication_date = models.DateField('date publication', null=True, blank=True)
-    url_externe_livre_text=models.CharField(max_length=200, blank=True, default='')
+    url_externe_livre_text = models.CharField(max_length=200, blank=True, default='')
     # date d'insertion dans le systeme
     creation_date = models.DateField(editable=False)
     createur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='createur')
@@ -28,14 +28,18 @@ class Livre(models.Model):
     possede_depuis_date = models.DateField(null=True, blank=True)
     categories = models.CharField(max_length=400, blank=True, default='')
 
-    def getSortedCategoriesAsStr(self):
+    def getSortedCategoriesAsTuple(self):
+        """
+               take the String: 'categories', and
+               :return: a list of tuple: t.0 = category Key, t.1 = categoryLabel
+               """
         if self.categories:
-            dict = eval(self.categories)
-            sortedList = sorted(dict.values())
-            return ", ".join(sortedList)
+            categories_dict = eval(self.categories)
+            tuples = list(categories_dict.items())
+            tuples.sort(key=lambda x: x[0])
+            return tuples
         else:
-            return ""
-
+            return []
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
@@ -79,7 +83,8 @@ class Transfert(models.Model):
     possesseur_envois_message_date = models.DateField(null=True, blank=True)
 
     # possesseur when the transfert is actually done, not when requested, as the possesseur can change
-    possesseur_final = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseurfinaltsf', null=True, blank=True)
+    possesseur_final = models.ForeignKey(User, on_delete=models.CASCADE, related_name='possesseurfinaltsf', null=True,
+                                         blank=True)
     # date ou le possesseur indique qu'il a transféré(physiquement) le livre au demandeur
     ok_possesseur_date = models.DateField(null=True, blank=True)
     # date ou le receveur confirme qu'il a bien recu le livre
@@ -156,4 +161,3 @@ class Retour(models.Model):
 
     def __str__(self):
         return f"{self.livre.titre_text} - emprunteur: {self.emprunteur.first_name} {self.emprunteur.last_name} - crée le: {self.creation_date} "
-

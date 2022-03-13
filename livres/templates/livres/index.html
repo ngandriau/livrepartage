@@ -5,6 +5,21 @@
 
 {% block header %}
     {% include 'livres/common_header.html' %}
+
+    <style>
+    .cat_jardinage{
+        background-color: #59ff65;
+    }
+     .cat_jeunesse{
+        background-color: #da6aff;
+    }
+    .cat_roman{
+        background-color: #ff8724;
+    }
+    .cat_vivrens{
+        background-color: #82faff;
+    }
+    </style>
 {% endblock header %}
 
 {% block content %}
@@ -122,7 +137,7 @@
                     <h5>{{ livre.livre.titre_text }}</h5>
                     {% if livre.livre.possesseur == user %}</a>{% endif %}
                     <div>{{ livre.livre.auteur_text }}  {%  if livre.livre.publication_date %}<em>- publié le {{ livre.livre.publication_date|date:"d M Y" }}</em>{% endif %}</div>
-                    <div><small>catégories:<em>{{ livre.livre.getSortedCategoriesAsStr }}</em></small></div>
+                    <div><small>catégories:<em>{% for cat in livre.livre.getSortedCategoriesAsTuple %} <label class="cat_{{ cat.0 }}">{{ cat.1 }}</label> {% endfor %}</em></small></div>
                     <div><small>code couverture: <em>{{ livre.livre.livre_code }}</em></small></div>
                 </td>
                 <td>

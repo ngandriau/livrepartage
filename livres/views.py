@@ -126,7 +126,9 @@ def buildLivreQuerySet(livreSearchCriteria, currentUser):
     queryset = queryset.filter(Q(titre_text__contains=livreSearchCriteria.searchinput) | Q(
         auteur_text__contains=livreSearchCriteria.searchinput) | Q(
         mots_sujets_txt__contains=livreSearchCriteria.searchinput) | Q(
-        livre_code__contains=livreSearchCriteria.searchinput))
+        livre_code__contains=livreSearchCriteria.searchinput) | Q(
+        possesseur__userprofile__ville__contains=livreSearchCriteria.searchinput)
+                               )
 
     # Ajoute filtre par rapport aux categories selectionnées dans le formulaire
     # queryset = queryset.filter(Q(categories__contains="'jeunesse': 'jeunesse'"))
@@ -189,7 +191,7 @@ def index_view(request):
 
     queryset = buildLivreQuerySet(livreSearchCriteria, request.user)
 
-    latest_created_livre_list = queryset.order_by('-creation_date')[:100]
+    latest_created_livre_list = queryset.order_by('-creation_date')[:200]
     livreEtAutreList=[]
     for livre in latest_created_livre_list:
         livreEtAutreList.append(LivreEtAutreEltOpt(livre=livre))

@@ -5,6 +5,21 @@
 
 {% block header %}
     {% include 'livres/common_header.html' %}
+
+    <style>
+    .cat_jardinage{
+        background-color: #59ff65;
+    }
+     .cat_jeunesse{
+        background-color: #da6aff;
+    }
+    .cat_roman{
+        background-color: #ff8724;
+    }
+    .cat_vivrens{
+        background-color: #82faff;
+    }
+    </style>
 {% endblock header %}
 
 {% block content %}
@@ -36,7 +51,7 @@
                 <div class="search"><i class="fa fa-search"></i>
                     <div class="btn-group">
                         <input id="searchinput" name="searchinput" type="search" class="form-control" form="searchform"
-                               placeholder="chercher par titre, auteur, mots sujets..."
+                               placeholder="chercher par titre, auteur, ville, mots sujets..."
                                value="{{ livreSearchCriteria.searchinput }}">
                     </div>
                     <button id="searchbutton" class="btn btn-primary">
@@ -44,31 +59,33 @@
                 </div>
             </div>
             <div class="p-2 bd-highlight">
-                <div class="d-flex flex-column bd-highlight mb-2">
-                    <div class="p-2 bd-highlight">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="true" id="jepossede_check"
-                                   {% if livreSearchCriteria.jepossede %}checked{% endif %}
-                                   form="searchform"
-                                   name="jepossede_check">
-                            <label class="form-check-label" for="jepossede_check">
-                                Je possède
-                            </label>
-                        </div>
-                    </div>
-                    <div class="p-2 bd-highlight">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="true" id="jaicree_check"
-                                   {% if livreSearchCriteria.jaicree %}checked{% endif %}
-                                   form="searchform"
-                                   name="jaicree_check">
-                            <label class="form-check-label" for="jaicree_check">
-                                J'ai créé
-                            </label>
-                        </div>
-                    </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="meslivres" id="meslivres" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "meslivres" %} checked {% endif %} >
+                    <label class="form-check-label" for="meslivres">
+                        mes livres
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="lesautres" id="lesautres" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "lesautres" %} checked {% endif %} >
+                    <label class="form-check-label" for="lesautres">
+                        les autres livres
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="tous" id="tous" name="livrePossession"
+                           form="searchform"
+                            {% if livreSearchCriteria.livrepossession == "tous" %} checked {% endif %} >
+                    <label class="form-check-label" for="tous">
+                        tous les livres
+                    </label>
                 </div>
             </div>
+
+
             <div class="p-2 bd-highlight">
                 <div class="d-flex flex-column bd-highlight mb-2">
                     <div class="p-2 bd-highlight">
@@ -88,50 +105,65 @@
                 </div>
             </div>
 
+            <div class="p-2 bd-highlight">
+{#                <label class="form-label">Catégories du livre:</label>#}
+                <select class="form-select" multiple size="3" id="categories" name="categories" form="searchform">
+                    {% for category in livreSearchCriteria.sortedselectedCategoriesList %}
+                        <option value="{{ category.0 }}" selected>{{ category.1 }}</option>
+                    {% endfor %}
+                    {% for category in livreSearchCriteria.sortedRemainingCategoriesList %}
+                        <option value="{{ category.0 }}">{{ category.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
         </div>
     </div>
 
-    {% if latest_created_livre_list %}
+    {% if latest_created_livre_et_autres_list %}
         <table class="table table-striped table-hover">
             <tr>
-                <th scope="col">Titre</th>
-                <th scope="col">Auteur(s)</th>
+                <th scope="col">  </th>
+                <th scope="col"></th> {# destiner aux liens de recherche comme duckduckgo - empty column header expres pour sauver espace #}
                 <th scope="col">Partage</th>
-                <th scope="col">Code Couverture</th>
                 <th scope="col">Ville</th>
-                <th scope="col">Je poss&egrave;de</th>
-                <th scope="col">J'ai cr&eacute;&eacute;</th>
+                <th scope="col">Possession</th>
                 <th scope="col">Date ajout</th>
-                <th scope="col">Date Publication</th>
                 <th scope="col">Actions</th>
             </tr>
-            {% for livre in latest_created_livre_list %}
+            {% for livre in latest_created_livre_et_autres_list %}
                 <tr>
-                <td> {% if livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.id %}">{% endif %}
-                    {{ livre.titre_text }}
-                    {% if livre.possesseur == user %}</a>{% endif %}
+                <td> {% if livre.livre.possesseur == user %}<a href="{% url 'livres:reqeditlivre' livre.livre.id %}">{% endif %}
+                    <h5>{{ livre.livre.titre_text }}</h5>
+                    {% if livre.livre.possesseur == user %}</a>{% endif %}
+                    <div>{{ livre.livre.auteur_text }}  {%  if livre.livre.publication_date %}<em>- publié le {{ livre.livre.publication_date|date:"d M Y" }}</em>{% endif %}</div>
+                    <div><small>catégories:<em>{% for cat in livre.livre.getSortedCategoriesAsTuple %} <label class="cat_{{ cat.0 }}">{{ cat.1 }}</label> {% endfor %}</em></small></div>
+                    <div><small>code couverture: <em>{{ livre.livre.livre_code }}</em></small></div>
                 </td>
-                <td>{{ livre.auteur_text }}</td>
-                <td>{{ livre.mode_partage }} </td>
-                <td>{{ livre.livre_code }} </td>
-                <td>{{ livre.possesseur.userprofile.ville }} </td>
-                <td>{% if livre.possesseur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %}
-                </td>
-                <td>{% if livre.createur == user %}<strong>Oui</strong> {% else %}<strong>Non</strong> {% endif %} </td>
-                <td>{{ livre.creation_date |date:"d M Y" }}</td>
-                <td>{{ livre.publication_date|date:"d M Y" }}</td>
                 <td>
-                    {% if livre.possesseur != user and livre.transferable_status != 'PERD' %}
-                        {% if livre not in livres_avec_transfert_actif_pour_user %}
-                            <form action="/livres/demandetransfert/{{ livre.id }}/" method="post">
-                                {% csrf_token %}
-                                <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
-                                <br>
-                            </form>
-                        {% else %}
-                            Transfert d&eacute;j&agrave; demand&eacute;
-                            {# Todo: trouver comment afficher la date de creation du transfert. Pour l<instant, je n<y arrive pas.#}
-                            {#                    le {{ livres_avec_transfert_actif_pour_user|get_key:livre }}#}
+                    <div><a href="https://duckduckgo.com/?q={{ livre.livre.titre_text|urlencode }} - {{ livre.livre.auteur_text|urlencode }}" target="_blank"><img src="{% static 'livres/faviconduckduckgo.ico' %}" width="20" height="20"/></a></div>
+                    {% if livre.livre.url_externe_livre_text %}<div><a href="{{ livre.livre.url_externe_livre_text }}" target="_blank"><img src="{% static 'livres/info.png' %}" width="20" height="20"/></a></div>{% endif %}
+                </td>
+                <td>{{ livre.livre.mode_partage }} </td>
+                <td>{{ livre.livre.possesseur.userprofile.ville }} </td>
+                <td>
+                    <p>{% if livre.livre.possesseur == user %} je possède{% endif %}</p>
+                    <p>{% if livre.livre.createur == user %} j'ai créé{% endif %}</p>
+                </td>
+                <td>{{ livre.livre.creation_date |date:"d M Y" }}</td>
+                <td>
+                    {% if livre.livre.possesseur != user and livre.livre.transferable_status != 'PERD' %}
+                        {# le createur d<un livre en mode PRET ne peut pas initier une demande de transfert. Il passera par ne demande de retour  #}
+                        {% if livre.livre.mode_partage == 'DON' or livre.livre.createur != user %}
+                            {% if not livre.transfert %}
+                                <form action="/livres/demandetransfert/{{ livre.livre.id }}/" method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary btn-default" type="submit">Je suis int&eacute;ress&eacute;</button>
+                                    <br>
+                                </form>
+                            {% else %}
+                                Transfert demand&eacute; le {{ livre.transfert.creation_date }}
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>
@@ -184,6 +216,9 @@
     }
 
     {% endif %}
+
+
+
 
 
 

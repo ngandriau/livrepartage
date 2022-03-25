@@ -14,9 +14,15 @@ urlpatterns = [
     path('demandetransfert/<int:pk>/', views.demande_transfert_livre, name='demandelivre'),
     path('transfertmeslivres/', views.list_demandes_transfert_mes_livres, name='listtransfertmeslivre'),
     path('listmesdemandestransfert/', views.list_mes_demandes_transfert_de_livres, name='listmesdemandestransfert'),
+    path('listlivrequejedoisretourner/', views.list_livres_que_je_dois_retourner, name='listlivrequejedoisretourner'),
+    path('listlivrequejeveuxrecuperer/', views.list_livres_que_je_veux_recuperer, name='listlivrequejeveuxrecuperer'),
     path('livretransmis/<int:pk>/', views.livre_a_ete_transfere, name='livretransmis'),
     path('livrerecu/<int:pk>/', views.livre_a_ete_recu, name='livrerecu'),
     path('annultransfert/<int:pk>/', views.annul_demande_transfert, name='annultransfert'),
     path('sendmessagetoinittransfert/<int:pk>/', views.send_message_demandeur_to_prep_transfert, name='sendmessagetoinittransfert'),
+    path('retourparemprunteur/<int:pk>/', views.livre_a_ete_retourne_par_emprunteur, name='retourparemprunteur'),
+    path('retourconfirmeparproprietaire/<int:pk>/', views.livre_retour_confirme_par_proprietaire, name='retourconfirmeparproprietaire'),
+    path('sendmessagepourrecupererlivre/<int:pk>/', views.livre_retour_proprietaire_envoi_msg_rappel, name='sendmessagepourrecupererlivre'),
+    path('sendmessagepourpreparerretourauproprio/<int:pk>/', views.livre_retour_emprunteur_envoi_msg_preparer_retour, name='sendmessagepourpreparerretourauproprio'),
 
 ]

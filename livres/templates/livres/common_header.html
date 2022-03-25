@@ -1,34 +1,51 @@
-<header class="p-3 bg-dark text-white">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
-                    <use xlink:href="#bootstrap"/>
-                </svg>
-            </a>
+{% load static %}
 
-            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-                <li><a href="{% url 'livres:index' %}" class="nav-link px-2 text-white">Partageons nos livres :-)</a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'livres:index' %}"><img src="{% static 'livres/petit_lecteur.png' %}" alt="" width="30" height="24"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'livres:index' %}">Home</a>
                 </li>
-                <li><a href="{% url 'livres:listtransfertmeslivre' %}" class="nav-link px-2 text-white">demandes pour
-                    mes livres ({{ demandes_transfert_mes_livres_list|length }})</a></li>
-                <li><a href="{% url 'livres:listmesdemandestransfert' %}" class="nav-link px-2 text-white">réceptions de
-                    livre &agrave; confirmer ({{ receptions_live_a_confirmer_list|length }}) </a></li>
-                <li><a href="{% url 'livres:listmesdemandestransfert' %}" class="nav-link px-2 text-white">mes demandes
-                    de transfert ({{ mes_demandes_transfert_list|length }}) </a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Mes livres
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'livres:listtransfertmeslivre' %}">En demande</a></li>
+                        <li><a class="dropdown-item" href="{% url 'livres:listlivrequejeveuxrecuperer' %}">A récupérer</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Les livres des autres
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'livres:listmesdemandestransfert' %}">Qui m'intéressent</a></li>
+                        <li><a class="dropdown-item" href="{% url 'livres:listmesdemandestransfert' %}">Que je dois confirmer</a></li>
+                        <li><a class="dropdown-item"   href="{% url 'livres:listlivrequejedoisretourner' %}" >Que je dois retourner</a></li>
+                    </ul>
+                </li>
             </ul>
-
-
-            {% if user.is_authenticated %}
-                <div class="text-end">
-                Hi {{ user.username }}!
-                </div>
-                <div class="text-end">
-                    <form action="{% url 'logout' %}" method="get">
-                    <button type="submit" class="btn btn-warning">Déconnexion</button>
-                    </form>
-            </div>
-            {% endif %}
+            <li class="nav-item dropdown d-flex">
+                <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                     {{ user.username }}
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="#">Editer mon profile</a></li>
+                    <li><a class="dropdown-item" href="{% static "livres/Livrepartage - guide utilisateur.pdf" %}" target="_blank" rel="noopener noreferrer">Guide utilisateur</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Deconnexion</a></li>
+                </ul>
+            </li>
         </div>
     </div>
-</header>
+</nav>

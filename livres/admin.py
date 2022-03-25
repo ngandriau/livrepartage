@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from .models import Livre, Transfert
+from .models import Livre, Transfert, Retour
 from .models import UserProfile
 
 
@@ -43,5 +43,14 @@ class TransfertAdmin(admin.ModelAdmin):
     search_fields = ['livre__titre_text', 'demandeur__first_name', 'demandeur__last_name', 'demandeur__username']
 
 
+class RetourAdmin(admin.ModelAdmin):
+    readonly_fields = ["creation_date"]
+    list_display = (
+        'emprunteur', 'creation_date', 'proprietaire', 'livre' , 'retour_status')
+    list_filter = ['creation_date', 'retour_status', 'emprunteur', 'proprietaire']
+    search_fields = ['livre__titre_text']
+
+
 admin.site.register(Livre, LivreAdmin)
 admin.site.register(Transfert, TransfertAdmin)
+admin.site.register(Retour, RetourAdmin)

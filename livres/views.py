@@ -191,7 +191,7 @@ def index_view(request):
 
     queryset = buildLivreQuerySet(livreSearchCriteria, request.user)
 
-    latest_created_livre_list = queryset.order_by('-creation_date')[:200]
+    latest_created_livre_list = queryset.order_by('-creation_date')[:500]
     livreEtAutreList=[]
     for livre in latest_created_livre_list:
         livreEtAutreList.append(LivreEtAutreEltOpt(livre=livre))
